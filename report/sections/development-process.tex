@@ -1,0 +1,29 @@
+\section{Quy trình thực hiện và tối ưu}
+
+Mã mẫu trong thư mục \texttt{legacy} được giữ nguyên để đối chiếu. Phần
+triển khai mới được tổ chức thành các mô-đun \texttt{Board}, \texttt{Piece},
+\texttt{Game}, \texttt{Input}, \texttt{Renderer} và \texttt{Score} trong
+thư mục \texttt{src}. Cách tổ chức này tách kiểm tra va chạm, điều khiển và
+hiển thị, trong khi \texttt{Game} điều phối trạng thái của khối đang rơi.
+
+Vòng lặp game kiểm tra phím khoảng mỗi 16 ms, còn tốc độ rơi tự động được
+điều khiển bởi bộ đếm thời gian riêng với chu kỳ 500 ms. Vì vậy, các phím
+\texttt{A}, \texttt{D}, \texttt{W} và \texttt{X} được phản hồi độc lập với
+tốc độ rơi. Bộ kết xuất chỉ tạo khung hình khi trạng thái thay đổi và đưa
+con trỏ về đầu màn hình thay vì gọi \texttt{system("cls")} ở mỗi vòng lặp.
+Điều này giảm nhấp nháy, giảm chi phí gọi tiến trình hệ thống và tránh độ
+trễ do chờ chu kỳ rơi.
+
+\subsection{Kiểm thử}
+
+Sau khi cài MSYS2 UCRT64, mã nguồn được biên dịch bằng:
+
+\begin{verbatim}
+g++ -std=c++17 -Wall -Wextra src/*.cpp -o build/tetris.exe
+\end{verbatim}
+
+Các kịch bản kiểm thử gồm di chuyển đến sát tường, di chuyển vào khối đã
+khóa, rơi nhanh, xoay cạnh tường, từ chối xoay khi mọi vị trí wall-kick đều
+không hợp lệ, khóa khối, xóa dòng, tính điểm và thoát bằng phím \texttt{Q}.
+Tệp thực thi trong thư mục \texttt{build} là sản phẩm biên dịch cục bộ và
+được loại khỏi Git bằng quy tắc \texttt{build/*.exe}.

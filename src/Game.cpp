@@ -39,25 +39,28 @@ void Game::lockActivePiece() {
     spawnPiece();
 }
 
-bool Game::handleCommand() {
+bool Game::handleCommand(bool& stateChanged) {
     switch (Input::readCommand()) {
     case Command::MoveLeft:
         if (canMove(-1, 0)) {
             --pieceX_;
+            stateChanged = true;
         }
         break;
     case Command::MoveRight:
         if (canMove(1, 0)) {
             ++pieceX_;
+            stateChanged = true;
         }
         break;
     case Command::HardDrop:
         while (canMove(0, 1)) {
             ++pieceY_;
+            stateChanged = true;
         }
         break;
     case Command::Rotate:
-        tryRotate();
+        stateChanged = tryRotate() || stateChanged;
         break;
     case Command::Quit:
         return false;
@@ -68,24 +71,41 @@ bool Game::handleCommand() {
 }
 
 void Game::run() {
+    using Clock = std::chrono::steady_clock;
+    constexpr auto FallInterval = std::chrono::milliseconds(500);
+    constexpr auto FrameInterval = std::chrono::milliseconds(16);
+
+    auto lastFall = Clock::now();
+    bool stateChanged = true;
+
     while (true) {
-        if (!handleCommand()) {
+        if (!handleCommand(stateChanged)) {
             return;
         }
 
-        if (canMove(0, 1)) {
-            ++pieceY_;
-        } else {
-            lockActivePiece();
-            if (!board_.canPlace(activePiece_, pieceX_, pieceY_)) {
-                Renderer::draw(board_, activePiece_, pieceX_, pieceY_,
-                               score_.value());
-                std::cout << "Game over!\n";
-                return;
+        const auto now = Clock::now();
+        if (now - lastFall >= FallInterval) {
+            if (canMove(0, 1)) {
+                ++pieceY_;
+                stateChanged = true;
+            } else {
+                lockActivePiece();
+                stateChanged = true;
+                if (!board_.canPlace(activePiece_, pieceX_, pieceY_)) {
+                    Renderer::draw(board_, activePiece_, pieceX_, pieceY_,
+                                   score_.value());
+                    std::cout << "Game over!\n";
+                    return;
+                }
             }
+            lastFall = now;
         }
 
-        Renderer::draw(board_, activePiece_, pieceX_, pieceY_, score_.value());
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        if (stateChanged) {
+            Renderer::draw(board_, activePiece_, pieceX_, pieceY_,
+                           score_.value());
+            stateChanged = false;
+        }
+        std::this_thread::sleep_for(FrameInterval);
     }
 }

@@ -10,7 +10,7 @@ public:
     void run();
 
 private:
-    bool handleCommand();
+    bool handleCommand(bool& stateChanged);
     bool canMove(int deltaX, int deltaY) const;
     bool tryRotate();
     void lockActivePiece();
