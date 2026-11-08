@@ -13,8 +13,9 @@ small modules under [`src/`](../src/):
 - [`Game`](../src/Game.h): coordinates movement, falling, hard drop, locking,
   game-over detection, and wall kicks.
 - [`Input`](../src/Input.h): maps keyboard keys to game commands.
-- [`Renderer`](../src/Renderer.h): renders the board and active piece.
-- [`Score`](../src/Score.h): calculates line-clear points.
+- [`Renderer`](../src/Renderer.h): renders the board, active piece, and ghost
+  landing position.
+- [`Score`](../src/Score.h): calculates line-clear points and level.
 
 ## Implemented controls
 
@@ -39,10 +40,14 @@ Clockwise rotation uses the required matrix transformation:
 rotated[row][column] = current[3 - column][row]
 ```
 
-After creating a rotated piece, `Game::tryRotate` tests horizontal offsets
-`0, -1, +1, -2, +2`. The rotation is committed only when one candidate
-position is valid; otherwise the original orientation and position remain
-unchanged.
+After creating a rotated piece, `Game::tryRotate` tests horizontal and
+vertical offsets around the current position. The rotation is committed only
+when one candidate position is valid; otherwise the original orientation and
+position remain unchanged.
+
+The renderer displays a ghost piece at the lowest valid landing position.
+Every ten cleared lines increase the level and reduce the automatic fall
+interval, with an 80 ms lower limit.
 
 ## Development and verification process
 
@@ -77,4 +82,6 @@ Run `./build/tetris.exe` from MSYS2 UCRT64 and verify:
   piece remains unchanged.
 - A piece locks when it can no longer move down.
 - A completed line is removed and the score increases.
+- The ghost piece marks the landing row and the level increases after ten
+  cleared lines, making automatic falling faster.
 - `Q` exits without modifying the legacy source.

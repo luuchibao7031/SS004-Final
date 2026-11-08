@@ -4,6 +4,7 @@
 #include "Renderer.h"
 
 #include <chrono>
+#include <algorithm>
 #include <iostream>
 #include <thread>
 
@@ -16,11 +17,18 @@ bool Game::canMove(int deltaX, int deltaY) const {
 
 bool Game::tryRotate() {
     const Piece rotated = activePiece_.rotatedClockwise();
-    constexpr int wallKickOffsets[] = {0, -1, 1, -2, 2};
-    for (const int offset : wallKickOffsets) {
-        if (board_.canPlace(rotated, pieceX_ + offset, pieceY_)) {
+    struct Kick {
+        int x;
+        int y;
+    };
+    constexpr Kick wallKickOffsets[] = {
+        {0, 0}, {-1, 0}, {1, 0}, {-2, 0}, {2, 0},
+        {0, -1}, {0, 1}, {-1, -1}, {1, -1}};
+    for (const Kick& kick : wallKickOffsets) {
+        if (board_.canPlace(rotated, pieceX_ + kick.x, pieceY_ + kick.y)) {
             activePiece_ = rotated;
-            pieceX_ += offset;
+            pieceX_ += kick.x;
+            pieceY_ += kick.y;
             return true;
         }
     }
@@ -72,7 +80,6 @@ bool Game::handleCommand(bool& stateChanged) {
 
 void Game::run() {
     using Clock = std::chrono::steady_clock;
-    constexpr auto FallInterval = std::chrono::milliseconds(500);
     constexpr auto FrameInterval = std::chrono::milliseconds(16);
 
     auto lastFall = Clock::now();
@@ -84,7 +91,9 @@ void Game::run() {
         }
 
         const auto now = Clock::now();
-        if (now - lastFall >= FallInterval) {
+        const auto fallInterval = std::chrono::milliseconds(
+            std::max(80, 500 - (score_.level() - 1) * 40));
+        if (now - lastFall >= fallInterval) {
             if (canMove(0, 1)) {
                 ++pieceY_;
                 stateChanged = true;
@@ -93,7 +102,7 @@ void Game::run() {
                 stateChanged = true;
                 if (!board_.canPlace(activePiece_, pieceX_, pieceY_)) {
                     Renderer::draw(board_, activePiece_, pieceX_, pieceY_,
-                                   score_.value());
+                                   score_.value(), score_.level());
                     std::cout << "Game over!\n";
                     return;
                 }
@@ -103,7 +112,7 @@ void Game::run() {
 
         if (stateChanged) {
             Renderer::draw(board_, activePiece_, pieceX_, pieceY_,
-                           score_.value());
+                           score_.value(), score_.level());
             stateChanged = false;
         }
         std::this_thread::sleep_for(FrameInterval);

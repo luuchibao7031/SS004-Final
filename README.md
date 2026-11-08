@@ -7,9 +7,9 @@ The playable implementation is split into focused modules under `src`:
 - `Board`: stores the playfield, collision checks, locking, and line clearing.
 - `Piece`: stores tetrominoes and applies clockwise 90-degree rotation.
 - `Game`: coordinates movement, hard drop, locking, game-over detection, and
-  wall kicks of up to two cells.
+  horizontal/vertical wall kicks.
 - `Input`, `Renderer`, and `Score`: handle keyboard commands, console output,
-  and scoring.
+  scoring, level progression, and the ghost landing position.
 
 Controls: `A`/`D` move left/right, `X` performs a hard drop, `W` rotates, and
 `Q` quits. The original sample remains unchanged in `legacy/Tetris.cpp`.
@@ -32,3 +32,7 @@ The game loop polls input approximately every 16 ms while automatic falling
 uses an independent 500 ms timer. Rendering is performed only after a state
 change and updates the existing console screen instead of invoking
 `system("cls")`, reducing flicker and input delay.
+
+The renderer shows a `.` ghost piece at the lowest valid landing position.
+Every 10 cleared lines increases the level and accelerates automatic falling,
+down to a safe minimum interval.
