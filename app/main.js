@@ -11,6 +11,8 @@ const overlayEyebrow = document.querySelector("#overlayEyebrow");
 const overlayButton = document.querySelector("#overlayButton");
 const highScoreElement = document.querySelector("#highScore");
 let highScore = Number(localStorage.getItem("block-bloom-high-score") || 0);
+let invisibleMode = localStorage.getItem("block-bloom-invisible-mode") === "true";
+let clearFlash = null;
 
 const cells = Array.from({ length: HEIGHT * WIDTH }, (_, index) => {
   const cell = document.createElement("div");
@@ -26,14 +28,25 @@ function drawPiece(target, piece) {
     for (let column = 0; column < SIZE; column += 1) {
       const cell = document.createElement("div");
       const type = piece.cells[row][column];
-      cell.className = `mini-cell ${type === " " ? "" : `piece-${type}`}`;
+      cell.className = `mini-cell${type === " " ? "" : ` piece-${type}`}`;
+      if (type !== " ") cell.dataset.piece = type;
       target.append(cell);
     }
   }
 }
 
-function draw() {
-  const visible = game.board.cells.map((row) => [...row]);
+function draw(now = performance.now()) {
+  const flashAge = clearFlash ? now - clearFlash.started : Number.POSITIVE_INFINITY;
+  const flashing = clearFlash && flashAge < clearFlash.duration;
+  if (clearFlash && !flashing) clearFlash = null;
+  const shouldShowFlash = flashing && Math.floor(flashAge / 100) % 2 === 0;
+  const source = shouldShowFlash ? clearFlash.snapshot : game.board.cells;
+  const visible = source.map((row) => [...row]);
+  if (invisibleMode && !shouldShowFlash) {
+    for (let row = 1; row < HEIGHT - 1; row += 1) {
+      for (let column = 1; column < WIDTH - 1; column += 1) visible[row][column] = " ";
+    }
+  }
   const ghostY = game.y + game.board.dropDistance(game.active, game.x, game.y);
   game.active.cells.forEach((row, rowIndex) => row.forEach((type, columnIndex) => {
     if (type !== " ") visible[ghostY + rowIndex][game.x + columnIndex] = `ghost-${type}`;
@@ -83,6 +96,15 @@ function celebrate(rows) {
   window.setTimeout(() => { message.remove(); effectsElement.querySelectorAll(".particle").forEach((item) => item.remove()); }, 800);
 }
 
+function handleClear(rows) {
+  if (!rows || rows.length === 0) return;
+  playSound("lineClear");
+  if (invisibleMode && game.lastClearSnapshot) {
+    clearFlash = { snapshot: game.lastClearSnapshot, started: performance.now(), duration: 700 };
+  }
+  celebrate(rows);
+}
+
 function action(command) {
   if (game.over || game.paused) return;
   let rows = null;
@@ -94,10 +116,7 @@ function action(command) {
     rows = game.hardDrop();
     playSound("drop");
   }
-  if (rows) {
-    playSound("lineClear");
-    celebrate(rows);
-  }
+  handleClear(rows);
   draw();
   if (game.over) {
     playSound("gameOver");
@@ -135,6 +154,19 @@ soundButton.addEventListener("click", () => {
   setSoundEnabled(!isSoundEnabled());
   updateSoundButton();
 });
+const invisibleButton = document.querySelector("#invisibleButton");
+function updateInvisibleButton() {
+  invisibleButton.textContent = invisibleMode ? "◉" : "◌";
+  invisibleButton.setAttribute("aria-label", invisibleMode ? "Disable invisible mode" : "Enable invisible mode");
+  invisibleButton.classList.toggle("active", invisibleMode);
+}
+invisibleButton.addEventListener("click", () => {
+  invisibleMode = !invisibleMode;
+  localStorage.setItem("block-bloom-invisible-mode", String(invisibleMode));
+  clearFlash = null;
+  updateInvisibleButton();
+  draw();
+});
 document.querySelector("#restartButton").addEventListener("click", () => { game.restart(); hideOverlay(); draw(); });
 overlayButton.addEventListener("click", () => {
   if (game.over) game.restart();
@@ -144,15 +176,13 @@ overlayButton.addEventListener("click", () => {
 
 function loop(now) {
   const rows = game.tick(now);
-  if (rows) {
-    playSound("lineClear");
-    celebrate(rows);
-  }
-  draw();
+  handleClear(rows);
+  draw(now);
   if (game.over && overlay.classList.contains("hidden")) showOverlay("Game over", "NICE RUN", "Restart");
   requestAnimationFrame(loop);
 }
 
 draw();
 updateSoundButton();
+updateInvisibleButton();
 requestAnimationFrame(loop);

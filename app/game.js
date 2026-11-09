@@ -113,6 +113,7 @@ export class Game {
     this.y = 1;
     this.paused = false;
     this.over = false;
+    this.lastClearSnapshot = null;
     this.lastFall = performance.now();
   }
 
@@ -149,8 +150,10 @@ export class Game {
   }
 
   lock() {
+    const snapshot = this.board.cells.map((row) => [...row]);
     this.board.lock(this.active, this.x, this.y);
     const clearedRows = this.board.clearCompletedLines();
+    this.lastClearSnapshot = clearedRows.length ? snapshot : null;
     this.score.addLines(clearedRows.length);
     this.active = this.next;
     this.next = Piece.random();

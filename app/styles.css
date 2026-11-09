@@ -27,6 +27,7 @@ h1 span { color: var(--pink); }
 .icon-button, .primary-button, .text-button { border: 0; cursor: pointer; }
 .top-actions { display: flex; gap: 8px; }
 .icon-button { width: 42px; height: 42px; color: var(--ink); background: white; border-radius: 14px; box-shadow: 0 8px 20px #cdd3e866; }
+.icon-button.active { color: #fff; background: var(--pink); }
 .game-layout { display: grid; grid-template-columns: 170px minmax(280px, 430px) 170px; gap: clamp(18px, 4vw, 54px); align-items: center; justify-content: center; margin: 36px auto 28px; }
 .side-panel { display: grid; gap: 16px; }
 .stat-card, .preview-card, .help-card { padding: 18px; border: 1px solid #fff; background: var(--surface); border-radius: 22px; box-shadow: 0 14px 30px #bec5dd35; backdrop-filter: blur(12px); }
@@ -44,6 +45,13 @@ h1 span { color: var(--pink); }
 .cell[class*="ghost-"] { background: transparent; border: 2px dashed #ffffff44; }
 .preview-grid { display: grid; grid-template-columns: repeat(4, 20px); gap: 3px; justify-content: center; padding: 20px 0 8px; }
 .mini-cell { position: relative; aspect-ratio: 1; border-radius: 5px; background: #eef0fa; }
+.mini-cell.piece-I { background: linear-gradient(135deg, #6eeeff, #20b9d5); }
+.mini-cell.piece-O { background: linear-gradient(135deg, #ffe783, #f3b52d); }
+.mini-cell.piece-T { background: linear-gradient(135deg, #d6a0ff, #a15de0); }
+.mini-cell.piece-S { background: linear-gradient(135deg, #8ee6b2, #35bd80); }
+.mini-cell.piece-Z { background: linear-gradient(135deg, #ff9aaf, #ef5379); }
+.mini-cell.piece-J { background: linear-gradient(135deg, #9fb6ff, #5c76db); }
+.mini-cell.piece-L { background: linear-gradient(135deg, #ffc58d, #f08d39); }
 .hold-card { text-align: center; }.hold-empty { padding: 18px 0 8px; color: #b7bbce; font-size: 1.8rem; }.hold-card small { color: var(--muted); }
 .help-card { line-height: 1.5; }.help-card p { margin: 9px 0 0; color: #666b88; font-size: .76rem; }
 kbd { display: inline-block; min-width: 22px; margin-right: 3px; padding: 2px 4px; color: #5b6285; font-size: .65rem; text-align: center; background: #edf0fb; border-radius: 5px; }
