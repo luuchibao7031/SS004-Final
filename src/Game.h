@@ -18,6 +18,7 @@ private:
 
     Board board_;
     Piece activePiece_;
+    Piece nextPiece_;   // TV1: luu khoi tiep theo de hien thi trong Sidebar
     Score score_;
     int pieceX_;
     int pieceY_;
