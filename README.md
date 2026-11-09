@@ -23,6 +23,8 @@ reference and regression baseline.
   particles, and tiered celebration messages.
 - Sound effects for movement, rotation, drop, line clear, and game over, with
   a mute button.
+- Optional invisible mode hides locked blocks and briefly flashes the board
+  when a line is cleared.
 - High score and sound preference stored locally in the browser.
 
 Hold, lifetime statistics, settings persistence, production bundling, and
@@ -84,6 +86,9 @@ deployable static assets.
 | Hard drop | `X` / `Space` |
 | Pause/resume | `P` or pause button |
 | Restart | `Restart` button |
+
+The `◌` button toggles invisible mode. Active and ghost pieces remain visible;
+locked blocks are hidden until a line-clear flash.
 
 ## Theme, audio, and local data
 

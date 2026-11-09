@@ -9,6 +9,7 @@
 | Line-clear effects | Completed | `app/main.js`, `app/styles.css` | Code review; clear-event path |
 | Local high score | Completed | `app/main.js` | Source audit |
 | Sound effects and mute control | Completed | `app/sound.js`, `assets/sounds/` | Local asset/source audit |
+| Invisible mode | Completed | `app/main.js`, `app/game.js` | Browser rendering path |
 | Documentation and reports | Completed | `docs/`, `README.md` | Git diff check |
 | C++ regression execution | Untested here | `src/`, `tests/` | `g++` unavailable |
 | Hold/statistics/bundling | Not Implemented | — | Not claimed |

@@ -16,6 +16,9 @@
 10. Input and line-clear/game-over events call `app/sound.js`, which plays
     local OGG files when sound is enabled. The mute preference is stored under
     `block-bloom-sound-enabled`.
+11. Invisible mode masks locked board cells during rendering. On a clear, the
+    pre-clear snapshot is shown on a short alternating flash before masking
+    resumes; the core board remains authoritative throughout.
 
 The core never owns DOM, storage, animation, or audio. There is no lifetime
 statistics store, settings store, or server boundary.
