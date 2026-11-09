@@ -85,3 +85,19 @@ Run `./build/tetris.exe` from MSYS2 UCRT64 and verify:
 - The ghost piece marks the landing row and the level increases after ten
   cleared lines, making automatic falling faster.
 - `Q` exits without modifying the legacy source.
+
+## Automated checks
+
+The focused movement and rotation checks can be built and run separately from
+the game executable:
+
+```bash
+g++ -std=c++17 -Wall -Wextra \
+  tests/movement_rotation_tests.cpp src/Board.cpp src/Piece.cpp \
+  -o build/movement_rotation_tests.exe
+./build/movement_rotation_tests.exe
+```
+
+The checks cover four clockwise rotations returning a piece to its original
+orientation, board-boundary rejection, and collision rejection after locking
+a piece.
