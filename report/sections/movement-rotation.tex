@@ -1,0 +1,28 @@
+\section{Điều khiển, di chuyển và xoay khối}
+
+\subsection{Cách chơi và hệ thống phím}
+
+Mã nguồn được tổ chức theo kiến trúc mô-đun trong thư mục \texttt{src}.
+\texttt{Board} chịu trách nhiệm lưu bàn chơi, kiểm tra va chạm, khóa khối và
+xóa dòng. \texttt{Game} điều phối trạng thái khối đang rơi và các thao tác
+điều khiển. \texttt{Input}, \texttt{Renderer} và \texttt{Score} lần lượt xử lý
+bàn phím, hiển thị console và tính điểm.
+
+Hàm kiểm tra va chạm chỉ cho phép khối được đặt trong vùng chơi và không
+chồng lên các ô đã khóa. Phép xoay theo chiều kim đồng hồ được cài đặt bằng
+công thức:
+\[
+    \mathrm{new}[i][j] = \mathrm{current}[3-j][i].
+\]
+
+Người chơi dùng phím \texttt{A}/\texttt{D} để di chuyển trái/phải,
+\texttt{X} để rơi nhanh, \texttt{W} để xoay và \texttt{Q} để thoát. Khi phép
+xoay bị chặn cạnh tường hoặc khối đã khóa, chương trình thử các độ lệch ngang
+nhỏ trong khoảng từ $-2$ đến $2$. Nếu không có vị trí hợp lệ, khối giữ nguyên
+trạng thái hiện tại để tránh xuyên tường. Các vị trí thử nghiệm gồm cả độ lệch
+ngang và dọc nhỏ, giúp xoay được khi khối đang sát sàn hoặc một cấu trúc đã
+khóa.
+
+Renderer hiển thị ghost piece tại vị trí thấp nhất mà khối có thể hạ xuống.
+Sau mỗi 10 dòng bị xóa, level tăng và thời gian rơi tự động giảm, nhưng
+không thấp hơn 80 mili giây.
