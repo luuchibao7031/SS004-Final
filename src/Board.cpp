@@ -29,6 +29,14 @@ bool Board::canPlace(const Piece& piece, int x, int y) const {
     return true;
 }
 
+int Board::dropDistance(const Piece& piece, int x, int y) const {
+    int distance = 0;
+    while (canPlace(piece, x, y + distance + 1)) {
+        ++distance;
+    }
+    return distance;
+}
+
 void Board::lock(const Piece& piece, int x, int y) {
     for (int row = 0; row < Piece::Size; ++row) {
         for (int column = 0; column < Piece::Size; ++column) {

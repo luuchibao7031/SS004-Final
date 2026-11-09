@@ -30,9 +30,10 @@ small modules under [`src/`](../src/):
 ## Collision and rotation
 
 `Board::canPlace` checks every occupied cell of a piece against the inside of
-the board and against already locked cells. `Game::canMove` reuses this check
-for horizontal and vertical movement, so movement and rotation use the same
-collision rules.
+the board and against already locked cells. `Board::dropDistance` reuses this
+collision check to calculate the lowest valid row. `Game::canMove` reuses the
+same rules for horizontal and vertical movement, so movement, hard drop, and
+rotation remain consistent.
 
 Clockwise rotation uses the required matrix transformation:
 

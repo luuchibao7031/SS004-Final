@@ -61,12 +61,15 @@ bool Game::handleCommand(bool& stateChanged) {
             stateChanged = true;
         }
         break;
-    case Command::HardDrop:
-        while (canMove(0, 1)) {
-            ++pieceY_;
+    case Command::HardDrop: {
+        const int dropDistance =
+            board_.dropDistance(activePiece_, pieceX_, pieceY_);
+        pieceY_ += dropDistance;
+        if (dropDistance > 0) {
             stateChanged = true;
         }
         break;
+    }
     case Command::Rotate:
         stateChanged = tryRotate() || stateChanged;
         break;

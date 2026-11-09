@@ -15,10 +15,7 @@ void Renderer::draw(const Board& board, const Piece& activePiece,
     }
     frame += "\x1b[H";
 
-    int ghostY = pieceY;
-    while (board.canPlace(activePiece, pieceX, ghostY + 1)) {
-        ++ghostY;
-    }
+    const int ghostY = pieceY + board.dropDistance(activePiece, pieceX, pieceY);
 
     for (int row = 0; row < Board::Height; ++row) {
         for (int column = 0; column < Board::Width; ++column) {

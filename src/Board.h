@@ -3,8 +3,6 @@
 #include "Piece.h"
 
 #include <array>
-#include <vector>
-
 class Board {
 public:
     static constexpr int Height = 20;
@@ -13,6 +11,7 @@ public:
     Board();
 
     bool canPlace(const Piece& piece, int x, int y) const;
+    int dropDistance(const Piece& piece, int x, int y) const;
     void lock(const Piece& piece, int x, int y);
     int clearCompletedLines();
     char at(int row, int column) const;
