@@ -1,16 +1,527 @@
-\documentclass[a4paper,12pt]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T5]{fontenc}
-\usepackage[vietnamese]{babel}
-\usepackage{geometry}
-\geometry{margin=2.5cm}
+% ============================================================
+%  BÁO CÁO ĐỒ ÁN MÔN HỌC SS004.R11 – GAME TETRIS – TUẦN 1
+%  Biên dịch bằng XeLaTeX (Overleaf: Menu -> Compiler -> XeLaTeX)
+%  Chỗ cần điền: tìm "[" màu đỏ, hoặc chỉnh các \newcommand ở khối THÔNG TIN NHÓM
+% ============================================================
+\documentclass[13pt,a4paper]{extarticle}
 
-\title{SS004 Final -- Tetris}
-\author{Movement and Rotation Team}
-\date{}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Termes}
+\setmonofont{DejaVu Sans Mono}[Scale=0.85]
+
+\usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,array,multirow}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage[colorlinks=true,linkcolor=black,urlcolor=blue!60!black]{hyperref}
+
+% ---------- Việt hóa nhãn ----------
+\renewcommand{\contentsname}{Mục lục}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\refname}{Tài liệu tham khảo}
+\captionsetup{font=small,labelfont=bf}
+
+% ---------- Định dạng ----------
+\linespread{1.15}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\setlist{itemsep=2pt,topsep=3pt,parsep=0pt}
+\renewcommand{\arraystretch}{1.25}
+
+\definecolor{uitblue}{HTML}{1F4E79}
+\definecolor{headfill}{HTML}{DCE6F1}
+\definecolor{todored}{HTML}{C00000}
+
+\titleformat{\section}{\Large\bfseries\color{uitblue}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small SS004.R11 – Báo cáo đồ án tuần 1: Game Tetris}
+\rfoot{\small Trang \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------- Macro tiện ích ----------
+\newcommand{\todo}[1]{\textcolor{todored}{[#1]}}
+\newcommand{\hl}[1]{\cellcolor{headfill}\textbf{#1}}
+
+% Chèn chữ ký (ảnh scan/chữ ký điện tử). Nếu chưa có file thì để ô trống.
+% Cách dùng: upload sig1.png ... sig5.png lên Overleaf cùng thư mục với main.tex
+\newcommand{\chuky}[1]{\IfFileExists{#1}{\includegraphics[height=1.1cm]{#1}}{\rule{0pt}{1.1cm}}}
+
+% Chèn ảnh minh chứng (chỉ hiện khi file tồn tại)
+\newcommand{\minhchung}[3]{%
+  \IfFileExists{#1}{\begin{figure}[H]\centering
+    \includegraphics[width=#2\linewidth]{#1}\caption{#3}\end{figure}}{}}
+
+% ============================================================
+%  THÔNG TIN NHÓM – CHỈ CẦN SỬA Ở ĐÂY
+% ============================================================
+\newcommand{\tennhom}{\todo{Tên nhóm}}
+\newcommand{\gvien}{\todo{Họ tên giảng viên}}
+\newcommand{\ngaylap}{\todo{dd/mm/2026}}
+
+% 5 thành viên – KHÔNG có trưởng nhóm, thứ tự chỉ để đánh số
+\newcommand{\tvA}{\todo{Họ tên TV1}} \newcommand{\mssvA}{\todo{MSSV}} \newcommand{\mailA}{\todo{MSSV}@gm.uit.edu.vn}
+\newcommand{\tvB}{\todo{Họ tên TV2}} \newcommand{\mssvB}{\todo{MSSV}} \newcommand{\mailB}{\todo{MSSV}@gm.uit.edu.vn}
+\newcommand{\tvC}{\todo{Họ tên TV3}} \newcommand{\mssvC}{\todo{MSSV}} \newcommand{\mailC}{\todo{MSSV}@gm.uit.edu.vn}
+\newcommand{\tvD}{\todo{Họ tên TV4}} \newcommand{\mssvD}{\todo{MSSV}} \newcommand{\mailD}{\todo{MSSV}@gm.uit.edu.vn}
+\newcommand{\tvE}{\todo{Họ tên TV5}} \newcommand{\mssvE}{\todo{MSSV}} \newcommand{\mailE}{\todo{MSSV}@gm.uit.edu.vn}
+
+% ============================================================
+%  MÀU & HÌNH TETRIS (vẽ bằng TikZ)
+% ============================================================
+\definecolor{tI}{HTML}{00BCD4} \definecolor{tO}{HTML}{FFC107}
+\definecolor{tT}{HTML}{9C27B0} \definecolor{tS}{HTML}{4CAF50}
+\definecolor{tZ}{HTML}{F44336} \definecolor{tJ}{HTML}{2962FF}
+\definecolor{tL}{HTML}{FF9800}
+
+% \tetro{x/y,x/y,...}{màu}{cỡ ô}
+\newcommand{\tetro}[3]{\foreach \x/\y in {#1}{%
+  \fill[#2,draw=black!55,line width=0.3pt] (\x*#3,\y*#3) rectangle ++(#3,#3);}}
 
 \begin{document}
-\maketitle
-\input{sections/movement-rotation}
-\input{sections/development-process}
+
+% ============================================================
+%  TRANG BÌA
+% ============================================================
+\begin{titlepage}
+\begin{tikzpicture}[remember picture,overlay]
+  \draw[line width=2.6pt] ([shift={(1.3cm,1.3cm)}]current page.south west)
+        rectangle ([shift={(-1.3cm,-1.3cm)}]current page.north east);
+  \draw[line width=0.7pt] ([shift={(1.5cm,1.5cm)}]current page.south west)
+        rectangle ([shift={(-1.5cm,-1.5cm)}]current page.north east);
+\end{tikzpicture}
+\centering
+\vspace*{0.3cm}
+{\large\bfseries ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH}\\[4pt]
+{\large\bfseries TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN}\\[1.2cm]
+
+% Logo: upload file logo-uit.png lên Overleaf
+\IfFileExists{logo-uit.png}{\includegraphics[width=4.6cm]{logo-uit.png}}%
+  {\fbox{\parbox[c][3.4cm][c]{4.2cm}{\centering\todo{Chèn logo UIT\\(logo-uit.png)}}}}\\[1.4cm]
+
+{\Large\bfseries BÁO CÁO ĐỒ ÁN MÔN HỌC}\\[0.5cm]
+{\large Môn học: SS004 – Lớp: R11}\\[0.9cm]
+{\fontsize{26}{30}\selectfont\bfseries\color{uitblue} GAME TETRIS}\\[0.4cm]
+{\large\itshape Xây dựng game Tetris bằng C++ (chạy trên console)}\\[0.9cm]
+{\large\bfseries BÁO CÁO TUẦN 1}\\[3pt]
+{\normalsize Hợp đồng nhóm – Các link công cụ – Giới thiệu và hướng dẫn chơi game}\\[1.1cm]
+
+\begin{flushleft}
+\hspace{1.2cm}\begin{tabular}{@{}l l l@{}}
+\textbf{Nhóm:}               & \multicolumn{2}{l}{\tennhom}\\[3pt]
+\textbf{Giảng viên:}         & \multicolumn{2}{l}{\gvien}\\[3pt]
+\textbf{Sinh viên thực hiện:}& \tvA & -- \mssvA\\
+                             & \tvB & -- \mssvB\\
+                             & \tvC & -- \mssvC\\
+                             & \tvD & -- \mssvD\\
+                             & \tvE & -- \mssvE\\[3pt]
+\textbf{Tuần:}               & \multicolumn{2}{l}{1 (09/11/2026 -- 15/11/2026)}\\
+\textbf{Hạn nộp:}            & \multicolumn{2}{l}{22:00, ngày 12/11/2026}\\
+\end{tabular}
+\end{flushleft}
+\vfill
+{\bfseries TP. HỒ CHÍ MINH, THÁNG 11 NĂM 2026}
+\end{titlepage}
+
+\setcounter{page}{1}
+\tableofcontents
+\newpage
+
+% ============================================================
+%  PHẦN 1 – HỢP ĐỒNG NHÓM
+% ============================================================
+\section{Hợp đồng nhóm}
+
+\subsection{Thông tin chung}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+\toprule
+\hl{Tên nhóm} & \tennhom\\
+\hl{Đề tài} & Xây dựng game Tetris bằng C++ (chạy trên console)\\
+\hl{Môn học} & SS004 -- Lớp R11\\
+\hl{Giảng viên} & \gvien\\
+\hl{Số thành viên} & 5 (vai trò và quyền hạn ngang nhau, không có trưởng nhóm)\\
+\hl{Ngày lập hợp đồng} & \ngaylap\\
+\hl{Hạn nộp báo cáo tuần 1} & 22:00, ngày 12/11/2026\\
+\bottomrule
+\end{tabularx}
+\caption{Thông tin chung của hợp đồng nhóm}
+\end{table}
+
+\subsection{Thành viên nhóm}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\linewidth}{@{}c X c X@{}}
+\toprule
+\textbf{STT} & \textbf{Họ và tên} & \textbf{MSSV} & \textbf{Email / tài khoản GitHub}\\
+\midrule
+1 & \tvA & \mssvA & \mailA\\
+2 & \tvB & \mssvB & \mailB\\
+3 & \tvC & \mssvC & \mailC\\
+4 & \tvD & \mssvD & \mailD\\
+5 & \tvE & \mssvE & \mailE\\
+\bottomrule
+\end{tabularx}
+\caption{Danh sách thành viên}
+\end{table}
+
+\subsection{Mục tiêu và nguyên tắc chung}
+\textbf{Mục tiêu.} Cả nhóm cam kết hoàn thành game Tetris đúng yêu cầu của môn học và đúng hạn. Nhóm bám sát khung mã và video hướng dẫn của giảng viên (mảng \texttt{board}, mảng \texttt{blocks} 4$\times$4, các hàm \texttt{canMove}, \texttt{block2Board}, \texttt{boardDelBlock}, \texttt{removeLine}\ldots) rồi mới mở rộng thêm chức năng ở Mục~\ref{sec:chucnang}. Mỗi thành viên đều viết mã thật và hiểu rõ phần mình làm.
+
+\textbf{Nguyên tắc bình đẳng.}
+\begin{itemize}
+  \item Nhóm \emph{không có trưởng nhóm}: cả 5 thành viên có quyền đề xuất, góp ý và biểu quyết như nhau.
+  \item Khối lượng công việc chia đều: mỗi người một mô-đun cốt lõi, một chức năng mở rộng, một phần báo cáo và một lượt review chéo (Bảng~\ref{tab:phancong}).
+  \item Các việc ``đầu mối'' như ghi biên bản họp, nộp bài trên website môn học được \emph{luân phiên} theo Bảng~\ref{tab:luanphien}; người đảm nhận chỉ thực hiện thao tác, không có thêm quyền quyết định.
+\end{itemize}
+
+\subsection{Phân công công việc}
+Cách chia dựa trên các thành phần của game mà giảng viên liệt kê trong video (bảng chơi, khối gạch, di chuyển, rơi tự động, va chạm, xóa dòng, sinh khối mới, game over, hiển thị console).
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}c X X X c@{}}
+\toprule
+\textbf{TV} & \textbf{Mô-đun cốt lõi (khung của thầy)} & \textbf{Chức năng mở rộng} & \textbf{Phần báo cáo tuần 1} & \textbf{Review cho}\\
+\midrule
+1 & Bảng chơi \& hiển thị: \texttt{board}, \texttt{initBoard}, \texttt{draw} & Giao diện: màu theo loại khối, khung thông tin & Mục~1: thông tin chung, mục tiêu, phân công & TV2\\
+2 & Khối gạch: mảng \texttt{blocks}, sinh khối ngẫu nhiên & Đủ 7 loại khối, mỗi loại một khối & Mục~3.1: Game này ra sao? & TV3\\
+3 & Di chuyển \& va chạm: \texttt{canMove}, phím \texttt{a}/\texttt{d}/\texttt{x} & Xoay khối 90$^\circ$ và phím xoay & Mục~3.2: Cách chơi & TV4\\
+4 & Đặt/xóa khối và cố định khối: \texttt{block2Board}, \texttt{boardDelBlock}, rơi tự động & Điểm số, level, tốc độ rơi tăng dần & Mục~3.3: Các chức năng chính & TV5\\
+5 & Xóa dòng đầy: \texttt{removeLine} & Menu, tạm dừng, game over, chơi lại & Mục~2: link công cụ; hình minh họa & TV1\\
+\bottomrule
+\end{tabularx}
+\caption{Phân công công việc (mỗi người đều có 4 phần việc tương đương)}
+\label{tab:phancong}
+\end{table}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}X X@{}}
+\toprule
+\textbf{Việc điều phối} & \textbf{Cách luân phiên}\\
+\midrule
+Người nộp link Overleaf tuần 1 & \todo{Ghi tên, chọn bằng bốc thăm}; hai người khác xác nhận đã nộp thành công\\
+Người ghi biên bản họp & Lần lượt TV1 $\to$ TV2 $\to$ \ldots $\to$ TV5, mỗi tuần một người\\
+Người ghép và rà lỗi cuối báo cáo & Mỗi người tự cập nhật mục của mình trên Overleaf; người khác chỉ góp ý bằng comment\\
+Người duyệt Pull Request & Luôn là người được ghi ở cột ``Review cho'' của Bảng~\ref{tab:phancong}; không ai tự duyệt PR của mình\\
+\bottomrule
+\end{tabularx}
+\caption{Các việc điều phối được luân phiên}
+\label{tab:luanphien}
+\end{table}
+
+\subsection{Giao tiếp và họp nhóm}
+\begin{itemize}
+  \item Họp nhóm tối thiểu một lần mỗi tuần (trực tiếp hoặc trực tuyến); nội dung họp và việc cần làm được ghi lên Trello.
+  \item Trao đổi hằng ngày qua Slack; tin nhắn liên quan đến phần việc của mình phải được trả lời trong vòng 24 giờ.
+  \item Mỗi công việc là một thẻ Trello, ghi rõ người phụ trách, người review và hạn hoàn thành.
+  \item Hạn nội bộ sớm hơn hạn nộp ít nhất 24 giờ (trước 22:00 ngày 11/11/2026) để còn thời gian ghép và kiểm tra.
+  \item Góp ý nhắm vào nội dung công việc, không công kích cá nhân; mọi ý kiến đều được lắng nghe.
+\end{itemize}
+
+\subsection{Quy tắc ra quyết định}
+\begin{itemize}
+  \item Quyết định thông thường (nội dung, cách trình bày, thứ tự việc, đổi người làm một đầu việc): cần ít nhất \textbf{3/5} thành viên đồng ý.
+  \item Quyết định quan trọng (sửa hợp đồng, đổi đề tài hoặc cách chia mô-đun, điều chỉnh tỉ lệ đóng góp): cần ít nhất \textbf{4/5} thành viên đồng ý.
+  \item Biểu quyết trong một thread riêng trên Slack, thời hạn 24 giờ; thành viên không phản hồi trong thời hạn không được tính là đồng ý.
+  \item Thành viên thuộc ý kiến thiểu số được ghi ý kiến vào biên bản; sau khi quyết định được thông qua, cả nhóm cùng thực hiện.
+\end{itemize}
+
+\subsection{Quy tắc sử dụng Git}
+\begin{itemize}
+  \item Không đẩy trực tiếp lên nhánh \texttt{main}; mỗi người làm trên nhánh riêng và gộp qua Pull Request, do người khác review.
+  \item Commit nhỏ, mỗi commit một việc, thông điệp rõ nghĩa (ví dụ: \texttt{Add T block}).
+  \item Mục tiêu tối thiểu của nhóm: 50 commit, 5--6 nhánh, và ít nhất 3 lần tự giải quyết xung đột (conflict) khi gộp mã.
+  \item Mỗi thành viên đều có commit trên repository; không ai làm hộ toàn bộ phần của người khác.
+\end{itemize}
+
+\subsection{Tiêu chí đánh giá}
+Cuối mỗi giai đoạn, các thành viên chấm cho nhau theo bốn tiêu chí dưới đây; điểm tổng hợp là căn cứ tính tỉ lệ đóng góp ở Mục~\ref{sec:tile}.
+
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\linewidth}{@{}p{2.1cm} X X X X@{}}
+\toprule
+\textbf{Tiêu chí} & \textbf{Xuất sắc (90--100)} & \textbf{Tốt (70--89)} & \textbf{Trung bình (50--69)} & \textbf{Kém ($<$50)}\\
+\midrule
+\textbf{Tiến độ} (30\%) &
+Xong $\ge$ 90\% việc được giao, đúng hoặc trước hạn nội bộ. &
+Xong 75--89\%; trễ hạn nhiều nhất 1 lần. &
+Xong 50--74\%; trễ 2--3 lần nhưng có báo trước. &
+Xong $<$ 50\% hoặc thường xuyên trễ mà không báo.\\
+\textbf{Chất lượng} (30\%) &
+Đúng yêu cầu; mã chạy ổn, báo cáo ít lỗi; commit rõ ràng. &
+Khá tốt; có vài lỗi nhỏ, sửa ngay sau review. &
+Đạt mức cơ bản; phải sửa nhiều lần sau review. &
+Sai sót nghiêm trọng, mã không chạy hoặc làm qua loa.\\
+\textbf{Chuyên cần} (20\%) &
+Dự 100\% buổi họp. &
+Dự từ 80\% số buổi trở lên. &
+Dự 60--79\% số buổi; vắng có lý do. &
+Vắng không lý do từ 2 buổi trở lên.\\
+\textbf{Hợp tác} (20\%) &
+Chủ động hỗ trợ bạn, review PR đúng hạn, phản hồi Slack dưới 4 giờ. &
+Hợp tác tốt, phản hồi Slack trong 4--12 giờ. &
+Ít góp ý, review chậm, phản hồi Slack 12--24 giờ. &
+Gây mâu thuẫn hoặc không phản hồi quá 24 giờ.\\
+\bottomrule
+\end{tabularx}
+\caption{Bảng tiêu chí đánh giá thành viên}
+\end{table}
+
+\subsection{Tỉ lệ đóng góp}\label{sec:tile}
+Vai trò ngang nhau nên tỉ lệ đóng góp mặc định là \textbf{20\% cho mỗi thành viên}. Chỉ khi có bằng chứng (lịch sử commit, thẻ Trello, biên bản họp) và được ít nhất 4/5 thành viên đồng ý, nhóm mới điều chỉnh tỉ lệ theo công thức:
+\[
+\text{Điểm}_i = 0{,}3\cdot\text{Tiến độ}_i + 0{,}3\cdot\text{Chất lượng}_i + 0{,}2\cdot\text{Chuyên cần}_i + 0{,}2\cdot\text{Hợp tác}_i,
+\qquad
+\text{Tỉ lệ}_i = \frac{\text{Điểm}_i}{\sum_{j=1}^{5}\text{Điểm}_j}\times 100\%.
+\]
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\linewidth}{@{}c X c c@{}}
+\toprule
+\textbf{STT} & \textbf{Họ và tên} & \textbf{Tỉ lệ mặc định} & \textbf{Tỉ lệ sau đánh giá}\\
+\midrule
+1 & \tvA & 20\% & \todo{điền sau}\\
+2 & \tvB & 20\% & \todo{điền sau}\\
+3 & \tvC & 20\% & \todo{điền sau}\\
+4 & \tvD & 20\% & \todo{điền sau}\\
+5 & \tvE & 20\% & \todo{điền sau}\\
+\midrule
+ & \textbf{Tổng} & \textbf{100\%} & \textbf{100\%}\\
+\bottomrule
+\end{tabularx}
+\caption{Tỉ lệ đóng góp của các thành viên}
+\end{table}
+
+\subsection{Xử lý khi vi phạm}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}c X X@{}}
+\toprule
+\textbf{Mức} & \textbf{Hành vi} & \textbf{Cách xử lý}\\
+\midrule
+1 & Trễ hạn nội bộ lần đầu (dưới 24 giờ); không phản hồi trong thời hạn. & Nhắc nhở trên Slack; thành viên bổ sung trong 24 giờ.\\
+2 & Trễ hạn lần hai; phần việc chưa đạt sau một lần sửa. & Họp nhóm, biểu quyết (3/5) để có người hỗ trợ hoặc chuyển việc; ghi vào biên bản.\\
+3 & Bỏ việc; không có commit; đóng góp thấp rõ rệt; chép mã hoặc nội dung không ghi nguồn. & Điều chỉnh tỉ lệ đóng góp theo Mục~\ref{sec:tile}, báo giảng viên và ghi nhận trong đánh giá cuối.\\
+\bottomrule
+\end{tabularx}
+\caption{Các mức xử lý vi phạm}
+\end{table}
+Thành viên bị xem xét có quyền giải trình với nhóm trong vòng 24 giờ trước khi quyết định có hiệu lực. Mọi thay đổi trong hợp đồng phải được thông qua theo quy tắc ở Mục~1.6 và ghi thành phụ lục kèm ngày tháng.
+
+\subsection{Cam kết và chữ ký}
+Chúng tôi, các thành viên của nhóm, đã đọc, hiểu và cam kết thực hiện đầy đủ các nội dung trong hợp đồng này. Chữ ký của \textbf{cả 5 thành viên} là bản scan chữ ký tay hoặc chữ ký điện tử.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\linewidth}{@{}c X c c >{\centering\arraybackslash}p{3.2cm}@{}}
+\toprule
+\textbf{STT} & \textbf{Họ và tên} & \textbf{MSSV} & \textbf{Ngày ký} & \textbf{Chữ ký}\\
+\midrule
+1 & \tvA & \mssvA & \todo{dd/mm/2026} & \chuky{sig1.png}\\ \midrule
+2 & \tvB & \mssvB & \todo{dd/mm/2026} & \chuky{sig2.png}\\ \midrule
+3 & \tvC & \mssvC & \todo{dd/mm/2026} & \chuky{sig3.png}\\ \midrule
+4 & \tvD & \mssvD & \todo{dd/mm/2026} & \chuky{sig4.png}\\ \midrule
+5 & \tvE & \mssvE & \todo{dd/mm/2026} & \chuky{sig5.png}\\
+\bottomrule
+\end{tabularx}
+\caption{Chữ ký xác nhận của tất cả thành viên}
+\end{table}
+
+% ============================================================
+%  PHẦN 2 – LINK CÔNG CỤ
+% ============================================================
+\section{Các link công cụ nhóm đã dùng}
+Nhóm dùng các công cụ dưới đây trong suốt quá trình làm việc; cả 5 thành viên đều đã được mời vào và có quyền như nhau.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l X X@{}}
+\toprule
+\textbf{Công cụ} & \textbf{Dùng để làm gì} & \textbf{Link}\\
+\midrule
+Git (GitHub) & Lưu và quản lý mã nguồn, chia nhánh, Pull Request & \todo{dán link repository}\\
+Trello & Chia việc, theo dõi tiến độ từng thành viên & \todo{dán link bảng Trello}\\
+Slack & Trao đổi hằng ngày, thông báo họp, biểu quyết & \todo{dán link workspace/channel Slack}\\
+Overleaf & Viết báo cáo bằng \LaTeX{} chung cả nhóm & \todo{dán link dự án Overleaf}\\
+\todo{Công cụ khác, nếu có} & \todo{mục đích} & \todo{link}\\
+\bottomrule
+\end{tabularx}
+\caption{Danh sách công cụ và đường dẫn}
+\end{table}
+
+\textbf{Trạng thái repository Git.} Hiện repository \emph{chỉ chứa mã nguồn khởi tạo do giảng viên cung cấp}; nhóm chưa viết thêm mã nào, phần lập trình sẽ bắt đầu từ các tuần sau theo Bảng~\ref{tab:phancong}. Mã khởi tạo gồm: bảng chơi \texttt{board[H][W]} (20$\times$15), mảng khối \texttt{blocks} (ma trận 4$\times$4), các hàm \texttt{initBoard}, \texttt{draw}, \texttt{canMove}, \texttt{block2Board}, \texttt{boardDelBlock}, \texttt{removeLine} và vòng lặp chính trong \texttt{main} nhận các phím \texttt{a}, \texttt{d}, \texttt{x}, \texttt{q}.
+
+\textbf{Cách nhóm dùng các công cụ cùng nhau.} Mỗi đầu việc là một thẻ Trello gắn với một nhánh Git cùng tên. Làm xong, thành viên mở Pull Request và báo lên Slack để người được giao review xem xét. Báo cáo được viết trực tiếp trên Overleaf để cả nhóm cùng chỉnh sửa.
+
+% Ảnh minh chứng (tùy chọn): upload file rồi bỏ comment tên file tương ứng
+\minhchung{minhchung-git.png}{0.85}{Repository chỉ có mã khởi tạo của giảng viên}
+\minhchung{minhchung-trello.png}{0.85}{Bảng Trello của nhóm}
+\minhchung{minhchung-slack.png}{0.85}{Kênh Slack của nhóm}
+
+% ============================================================
+%  PHẦN 3 – GIỚI THIỆU & HƯỚNG DẪN CHƠI (2–10 trang)
+% ============================================================
+\section{Giới thiệu và hướng dẫn chơi game Tetris}
+Phần này dựa trên các phiên bản Tetris thông dụng đã có sẵn (như bản chơi trực tuyến mà giảng viên mở minh họa trong video); nhóm \emph{chưa lập trình} ở giai đoạn này. Mục đích là để cả nhóm hình dung rõ game của mình sẽ có những chức năng gì.
+
+\subsection{Game này ra sao?}
+Tetris là trò chơi xếp hình mà ai cũng học được trong 30 giây nhưng rất khó rời tay: những khối gạch gồm bốn ô vuông rơi dần từ trên xuống, nhiệm vụ của bạn là xoay và đặt chúng sao cho lấp kín từng hàng ngang. Hàng nào đầy sẽ biến mất, nhường chỗ cho các khối tiếp theo. Chơi càng lâu, khối rơi càng nhanh và áp lực càng lớn.
+
+\textbf{Nguồn gốc.} Tetris ra đời tại Moscow (Liên Xô cũ), do kỹ sư máy tính Alexey Pajitnov phát triển; bản chơi được đầu tiên hoàn thành vào năm 1984. Cái tên ghép từ tiền tố Hy Lạp \emph{tetra} (nghĩa là bốn, vì mọi khối đều gồm bốn ô) và \emph{tennis}, môn thể thao yêu thích của tác giả. Game bùng nổ khi được bán kèm máy chơi game cầm tay Game Boy của Nintendo năm 1989, và ngày nay có mặt trên máy tính, máy chơi game, điện thoại và cả trình duyệt web.
+
+\textbf{Vì sao Tetris cuốn hút?}
+\begin{itemize}
+  \item \emph{Luật cực đơn giản:} chỉ cần hiểu ``lấp đầy hàng ngang thì hàng đó biến mất''.
+  \item \emph{Mỗi ván một khác:} thứ tự khối ngẫu nhiên nên không có hai ván giống nhau.
+  \item \emph{Luôn muốn chơi thêm một ván:} game không có ``thắng'', chỉ có ``lần này lâu hơn lần trước''.
+  \item \emph{Căng dần theo thời gian:} tốc độ rơi tăng lên buộc người chơi quyết định nhanh hơn.
+\end{itemize}
+
+\textbf{Bảy loại khối (tetromino).} Mỗi khối là một hình tạo từ bốn ô vuông và chỉ có đúng bảy hình khác nhau, thường được gọi theo chữ cái giống hình dạng của chúng.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1]
+  \def\csz{0.38}
+  \begin{scope}[shift={(0,0)}]    \tetro{0/0,1/0,2/0,3/0}{tI}{\csz}   \node at (0.76,-0.35) {I}; \end{scope}
+  \begin{scope}[shift={(2.2,0)}]  \tetro{0/0,1/0,0/1,1/1}{tO}{\csz}   \node at (0.38,-0.35) {O}; \end{scope}
+  \begin{scope}[shift={(3.6,0)}]  \tetro{0/0,1/0,2/0,1/1}{tT}{\csz}   \node at (0.57,-0.35) {T}; \end{scope}
+  \begin{scope}[shift={(5.4,0)}]  \tetro{0/0,1/0,1/1,2/1}{tS}{\csz}   \node at (0.57,-0.35) {S}; \end{scope}
+  \begin{scope}[shift={(7.2,0)}]  \tetro{0/1,1/1,1/0,2/0}{tZ}{\csz}   \node at (0.57,-0.35) {Z}; \end{scope}
+  \begin{scope}[shift={(9.0,0)}]  \tetro{0/0,1/0,2/0,0/1}{tJ}{\csz}   \node at (0.57,-0.35) {J}; \end{scope}
+  \begin{scope}[shift={(10.8,0)}] \tetro{0/0,1/0,2/0,2/1}{tL}{\csz}   \node at (0.57,-0.35) {L}; \end{scope}
+\end{tikzpicture}
+\caption{Bảy loại khối gạch trong Tetris (hình minh họa do nhóm vẽ)}
+\end{figure}
+
+\textbf{Kinh nghiệm chơi.} Khối I (thanh dài) rất hợp để xóa nhiều hàng cùng lúc; khối O (hình vuông) gọn gàng, không cần xoay; khối S và Z dễ để lại khe hở nếu đặt vội; khối T linh hoạt; còn J và L tiện để lấp các góc.
+
+\subsection{Cách chơi dành cho người dùng cuối}
+\textbf{Mục tiêu.} Xếp các khối rơi xuống sao cho lấp kín các hàng ngang để ghi điểm, và cố chơi được lâu nhất có thể trước khi đống gạch chất cao tới đỉnh.
+
+\textbf{Luật chơi cơ bản.}
+\begin{enumerate}
+  \item Khung chơi là một hình chữ nhật có tường hai bên và đáy.
+  \item Mỗi lần có một khối mới xuất hiện ở phía trên và tự rơi xuống từng nấc.
+  \item Bạn có thể dịch khối sang trái, sang phải, cho rơi nhanh hơn hoặc xoay khối trước khi nó chạm đáy.
+  \item Khối dừng lại khi chạm đáy hoặc chạm một khối khác, rồi trở thành một phần của ``đống gạch''.
+  \item Hàng ngang nào không còn ô trống sẽ bị xóa, các hàng phía trên rơi xuống thế chỗ và bạn được cộng điểm.
+  \item Ngay sau đó một khối mới xuất hiện và vòng chơi tiếp tục.
+\end{enumerate}
+
+\textbf{Xóa hàng như thế nào?} Hình~\ref{fig:xoahang} minh họa một tình huống thường gặp: hai hàng dưới cùng chỉ còn thiếu đúng một ô ở cùng một cột. Khi thả khối I thẳng đứng vào khe đó, hai hàng cùng đầy và bị xóa một lúc. Xóa nhiều hàng cùng lúc luôn được nhiều điểm hơn xóa từng hàng.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1]
+  \def\csz{0.42}
+  % ---- Trước: bảng 8 cột x 6 hàng
+  \begin{scope}
+    \foreach \r in {0,1}{\foreach \col in {0,1,2,3,4,6,7}{
+      \fill[gray!55,draw=black!55,line width=0.3pt] (\col*\csz,\r*\csz) rectangle ++(\csz,\csz);}}
+    \tetro{5/2,5/3,5/4,5/5}{tI}{\csz}
+    \draw[line width=1pt] (0,6*\csz) -- (0,0) -- (8*\csz,0) -- (8*\csz,6*\csz);
+    \node[align=center,font=\small] at (4*\csz,-0.7) {Khối I đang rơi\\vào khe trống};
+  \end{scope}
+  \draw[-{Stealth[length=3mm]},line width=1pt] (4.2,1.1) -- (5.4,1.1);
+  % ---- Sau
+  \begin{scope}[shift={(6,0)}]
+    \tetro{5/0,5/1}{tI}{\csz}
+    \draw[line width=1pt] (0,6*\csz) -- (0,0) -- (8*\csz,0) -- (8*\csz,6*\csz);
+    \node[align=center,font=\small] at (4*\csz,-0.7) {Hai hàng đầy\\bị xóa cùng lúc};
+  \end{scope}
+\end{tikzpicture}
+\caption{Ví dụ xóa hai hàng cùng lúc (hình minh họa do nhóm vẽ)}
+\label{fig:xoahang}
+\end{figure}
+
+\textbf{Điều khiển.} Phiên bản của nhóm dự kiến bám theo bộ phím trong mã khởi tạo của giảng viên và bổ sung thêm phím xoay, tạm dừng.
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\linewidth}{@{}c X X@{}}
+\toprule
+\textbf{Phím} & \textbf{Chức năng} & \textbf{Ghi chú}\\
+\midrule
+\texttt{a} & Dịch khối sang trái & Có sẵn trong mã khởi tạo\\
+\texttt{d} & Dịch khối sang phải & Có sẵn trong mã khởi tạo\\
+\texttt{x} & Cho khối rơi nhanh xuống & Có sẵn trong mã khởi tạo\\
+\texttt{w} & Xoay khối 90$^\circ$ & Nhóm sẽ bổ sung (dự kiến)\\
+\texttt{p} & Tạm dừng / tiếp tục & Nhóm sẽ bổ sung (dự kiến)\\
+\texttt{q} & Thoát game & Có sẵn trong mã khởi tạo\\
+\bottomrule
+\end{tabularx}
+\caption{Phím điều khiển của game}
+\end{table}
+
+\textbf{Khi nào game kết thúc?} Khi khối mới không còn chỗ để xuất hiện ở phía trên (đống gạch đã chạm tới đỉnh), game báo ``Game Over''. Người chơi có thể chọn chơi lại để thử phá kỷ lục của chính mình.
+
+\textbf{Mẹo cho người mới.}
+\begin{itemize}
+  \item Giữ đống gạch thấp và phẳng, tránh để lại những ``giếng'' sâu mà chỉ khối I mới lấp được.
+  \item Đừng vội cho rơi nhanh khi chưa chắc vị trí; sai một nước có thể mất cả hàng.
+  \item Nhìn trước khối kế tiếp (nếu game có hiển thị) để lên kế hoạch nước đi.
+  \item Ưu tiên lấp các ô trống bị che bên dưới trước khi xếp tiếp lên trên.
+\end{itemize}
+
+\subsection{Các chức năng chính}\label{sec:chucnang}
+Từ cách chơi ở trên, nhóm chia chức năng của game làm hai nhóm: \emph{cơ bản} (bám theo khung mã và video của giảng viên) và \emph{mở rộng} (nhóm tự bổ sung).
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}l l X l@{}}
+\toprule
+\textbf{Nhóm} & \textbf{Chức năng} & \textbf{Mô tả} & \textbf{Trong mã khởi tạo}\\
+\midrule
+Cơ bản & Bảng chơi & Khung chơi có tường hai bên và đáy, lưu bằng mảng hai chiều ký tự & \texttt{board}, \texttt{initBoard}\\
+Cơ bản & Khối gạch & Mỗi khối là ma trận 4$\times$4; ô trống là dấu cách & \texttt{blocks}\\
+Cơ bản & Di chuyển & Dịch trái, phải và cho rơi nhanh xuống bằng phím & \texttt{a}, \texttt{d}, \texttt{x}\\
+Cơ bản & Rơi tự động & Khối tự rơi từng nấc theo thời gian & vòng lặp \texttt{main}\\
+Cơ bản & Kiểm tra va chạm & Không cho khối đi xuyên tường, đáy hoặc khối khác & \texttt{canMove}\\
+Cơ bản & Cố định khối & Khối chạm đáy hoặc khối khác thì dính vào bảng & \texttt{block2Board}\\
+Cơ bản & Xóa hàng đầy & Hàng không còn ô trống bị xóa, các hàng trên rơi xuống & \texttt{removeLine}\\
+Cơ bản & Sinh khối mới & Sau khi khối cố định, tạo khối ngẫu nhiên ở phía trên & \texttt{rand}\\
+Cơ bản & Hiển thị console & Vẽ lại toàn bộ bảng sau mỗi bước & \texttt{draw}\\
+\midrule
+Mở rộng & Đủ 7 loại khối & Chuẩn hóa mảng \texttt{blocks}: mỗi loại I, O, T, S, Z, J, L đúng một khối, đúng như Tetris gốc & ---\\
+Mở rộng & Xoay khối & Xoay 90$^\circ$; không cho xoay khi vướng tường hoặc khối khác & ---\\
+Mở rộng & Game over & Báo thua khi khối mới không còn chỗ xuất hiện & ---\\
+Mở rộng & Điểm, level, tốc độ & Tính điểm theo số hàng xóa, tăng level và tăng dần tốc độ rơi & ---\\
+Mở rộng & Giao diện đẹp & Màu theo loại khối, khung thông tin, hiển thị khối kế tiếp & ---\\
+Mở rộng & Menu, tạm dừng, chơi lại & Màn hình bắt đầu, phím tạm dừng, hỏi chơi lại sau khi thua & ---\\
+\bottomrule
+\end{tabularx}
+\caption{Các chức năng chính của game}
+\end{table}
+
+\textbf{Định hướng thiết kế.} Game được viết bằng C++ và chạy trên console. Toàn bộ bảng chơi là một mảng ký tự hai chiều, các khối là ma trận ký tự 4$\times$4, và logic của game xoay quanh bốn việc: vẽ bảng, đặt/xóa khối trên bảng, kiểm tra va chạm và xóa hàng đầy. Đây cũng là cách chia chức năng để các thành viên làm song song trên các nhánh Git riêng mà ít đụng nhau.
+
+% ============================================================
+%  TÀI LIỆU THAM KHẢO
+% ============================================================
+\begin{thebibliography}{9}
+\bibitem{wiki} Tetris -- Wikipedia. \url{https://en.wikipedia.org/wiki/Tetris}
+\bibitem{video} Video hướng dẫn cách lập trình game Tetris của giảng viên. \url{https://youtu.be/vcXaTVjdlJ0}
+\bibitem{gomagic} Play Tetris Online -- GoMagic (phiên bản Tetris thông dụng được giảng viên minh họa). \url{https://gomagic.org/play-tetris/}
+\end{thebibliography}
+
 \end{document}
