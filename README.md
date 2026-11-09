@@ -21,17 +21,19 @@ reference and regression baseline.
   clearing, score, level, game over, next preview, pause, and restart.
 - Ghost piece, rounded gradient blocks, responsive light theme, line-clear
   particles, and tiered celebration messages.
-- High score stored locally in the browser.
+- Sound effects for movement, rotation, drop, line clear, and game over, with
+  a mute button.
+- High score and sound preference stored locally in the browser.
 
-Hold, audio, lifetime statistics, settings persistence, production bundling,
-and executable packaging are **not implemented**.
+Hold, lifetime statistics, settings persistence, production bundling, and
+executable packaging are **not implemented**.
 
 ## Technology stack
 
 - HTML, CSS, and native JavaScript ES modules.
 - Python 3 standard-library HTTP server for local hosting.
 - C++17/MSYS2 UCRT64 for the preserved console implementation and tests.
-- No npm package, external service, or network request.
+- No npm package, external service, or runtime network request.
 
 ## Architecture
 
@@ -86,9 +88,11 @@ deployable static assets.
 ## Theme, audio, and local data
 
 The current light theme is defined in `app/styles.css`; there is no runtime
-theme selector. Audio is not implemented and `assets/sounds/` is intentionally
-absent. Only `block-bloom-high-score` is stored in browser `localStorage`;
-board state, settings, and lifetime statistics are not persisted.
+theme selector. Local OGG effects are stored in `app/assets/sounds/` and can be
+muted with the header button. The high score and mute preference are stored in
+browser `localStorage`; board state, settings, and lifetime statistics are not
+persisted. See [the audio documentation](docs/features/AUDIO_SYSTEM.md) for
+source and license details.
 
 ## Build and test the C++ baseline
 

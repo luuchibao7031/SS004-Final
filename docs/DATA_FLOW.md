@@ -13,7 +13,9 @@
 8. A non-empty clear result triggers popup/particle effects and nothing else.
 9. High score is the only persisted value, stored under
    `block-bloom-high-score` in browser localStorage.
+10. Input and line-clear/game-over events call `app/sound.js`, which plays
+    local OGG files when sound is enabled. The mute preference is stored under
+    `block-bloom-sound-enabled`.
 
-The core never owns DOM, storage, animation, or audio. There is currently no
-audio event stream, lifetime-statistics store, settings store, or server
-boundary.
+The core never owns DOM, storage, animation, or audio. There is no lifetime
+statistics store, settings store, or server boundary.
