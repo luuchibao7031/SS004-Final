@@ -102,3 +102,11 @@ g++ -std=c++17 -Wall -Wextra \
 The checks cover four clockwise rotations returning a piece to its original
 orientation, board-boundary rejection, and collision rejection after locking
 a piece.
+
+Score and level progression are checked separately:
+
+```bash
+g++ -std=c++17 -Wall -Wextra \
+  tests/score_tests.cpp src/Score.cpp -o build/score_tests.exe
+./build/score_tests.exe
+```
