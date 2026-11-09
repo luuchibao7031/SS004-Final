@@ -1,4 +1,5 @@
-import { Board, Game, HEIGHT, WIDTH, SIZE } from "./game.js";
+import { Game, HEIGHT, WIDTH, SIZE } from "./game.js";
+import { isSoundEnabled, playSound, setSoundEnabled } from "./sound.js";
 
 const game = new Game();
 const boardElement = document.querySelector("#board");
@@ -85,14 +86,23 @@ function celebrate(rows) {
 function action(command) {
   if (game.over || game.paused) return;
   let rows = null;
-  if (command === "left") game.move(-1, 0);
-  if (command === "right") game.move(1, 0);
-  if (command === "down") game.move(0, 1);
-  if (command === "rotate") game.rotate();
-  if (command === "drop") rows = game.hardDrop();
-  if (rows) celebrate(rows);
+  if (command === "left" && game.move(-1, 0)) playSound("move");
+  if (command === "right" && game.move(1, 0)) playSound("move");
+  if (command === "down" && game.move(0, 1)) playSound("move");
+  if (command === "rotate" && game.rotate()) playSound("rotate");
+  if (command === "drop") {
+    rows = game.hardDrop();
+    playSound("drop");
+  }
+  if (rows) {
+    playSound("lineClear");
+    celebrate(rows);
+  }
   draw();
-  if (game.over) showOverlay("Game over", "NICE RUN", "Restart");
+  if (game.over) {
+    playSound("gameOver");
+    showOverlay("Game over", "NICE RUN", "Restart");
+  }
 }
 
 document.addEventListener("keydown", (event) => {
@@ -116,6 +126,15 @@ function togglePause() {
 }
 
 document.querySelector("#pauseButton").addEventListener("click", togglePause);
+const soundButton = document.querySelector("#soundButton");
+function updateSoundButton() {
+  soundButton.textContent = isSoundEnabled() ? "♫" : "×";
+  soundButton.setAttribute("aria-label", isSoundEnabled() ? "Mute sound" : "Enable sound");
+}
+soundButton.addEventListener("click", () => {
+  setSoundEnabled(!isSoundEnabled());
+  updateSoundButton();
+});
 document.querySelector("#restartButton").addEventListener("click", () => { game.restart(); hideOverlay(); draw(); });
 overlayButton.addEventListener("click", () => {
   if (game.over) game.restart();
@@ -125,11 +144,15 @@ overlayButton.addEventListener("click", () => {
 
 function loop(now) {
   const rows = game.tick(now);
-  if (rows) celebrate(rows);
+  if (rows) {
+    playSound("lineClear");
+    celebrate(rows);
+  }
   draw();
   if (game.over && overlay.classList.contains("hidden")) showOverlay("Game over", "NICE RUN", "Restart");
   requestAnimationFrame(loop);
 }
 
 draw();
+updateSoundButton();
 requestAnimationFrame(loop);

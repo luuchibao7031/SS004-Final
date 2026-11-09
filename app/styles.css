@@ -25,6 +25,7 @@ button { font: inherit; }
 h1 { margin: 4px 0 0; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -.07em; }
 h1 span { color: var(--pink); }
 .icon-button, .primary-button, .text-button { border: 0; cursor: pointer; }
+.top-actions { display: flex; gap: 8px; }
 .icon-button { width: 42px; height: 42px; color: var(--ink); background: white; border-radius: 14px; box-shadow: 0 8px 20px #cdd3e866; }
 .game-layout { display: grid; grid-template-columns: 170px minmax(280px, 430px) 170px; gap: clamp(18px, 4vw, 54px); align-items: center; justify-content: center; margin: 36px auto 28px; }
 .side-panel { display: grid; gap: 16px; }
