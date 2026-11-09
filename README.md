@@ -25,6 +25,7 @@ reference and regression baseline.
   a mute button.
 - Optional invisible mode hides locked blocks and briefly flashes the board
   when a line is cleared.
+- Mode menu with Classic, Invisible, and Sprint (40-line time trial).
 - High score and sound preference stored locally in the browser.
 
 Hold, lifetime statistics, settings persistence, production bundling, and
@@ -87,8 +88,10 @@ deployable static assets.
 | Pause/resume | `P` or pause button |
 | Restart | `Restart` button |
 
-The `◌` button toggles invisible mode. Active and ghost pieces remain visible;
-locked blocks are hidden until a line-clear flash.
+Use the `☷ Mode` button to select Classic, Invisible, or Sprint. Classic shows
+the ghost landing guide. Invisible hides both the locked blocks and ghost guide
+so the player must remember the stack. Sprint tracks time until 40 lines are
+cleared.
 
 ## Theme, audio, and local data
 

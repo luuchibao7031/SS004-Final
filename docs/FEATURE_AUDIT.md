@@ -10,6 +10,8 @@
 | Local high score | Completed | `localStorage` in `main.js` |
 | Sound effects and mute control | Completed | `app/sound.js`, local OGG assets |
 | Invisible mode | Completed | `main.js` presentation toggle and clear flash |
+| Mode selection menu | Completed | `index.html`, `main.js` |
+| Sprint 40-line timer | Completed | `Game` elapsed state and mode menu |
 | Line-clear popup and particles | Completed | `celebrate` in `main.js` |
 | Light responsive theme | Completed | `styles.css` |
 | Hold piece | Not Implemented | UI intentionally displays classic-rules placeholder |

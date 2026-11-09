@@ -23,6 +23,7 @@
 - [Local persistence](features/LOCAL_PERSISTENCE.md)
 - [Audio system](features/AUDIO_SYSTEM.md)
 - [Invisible mode](features/INVISIBLE_MODE.md)
+- [Game modes](features/GAME_MODES.md)
 - [Ghost piece](features/GHOST_PIECE.md)
 - [Pause and resume](features/PAUSE_RESUME.md)
 - [Line-clear effects](features/LINE_CLEAR_EFFECTS.md)

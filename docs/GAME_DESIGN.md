@@ -29,6 +29,7 @@ Level is `floor(lines / 10) + 1`; gravity starts at 500 ms and decreases by
 The ghost piece is a projection only. Popup text and particles occur after
 the core reports cleared rows. They do not affect scoring or board state.
 
-There is a next preview. Hold, combo scoring, audio, and hard-drop animation
-are not implemented; the current UI labels the hold area as classic rules
-instead of claiming a hold mechanic.
+There is a next preview. The mode menu offers Classic, Invisible, and Sprint.
+Invisible hides locked cells and the ghost guide as presentation only. Sprint
+ends after 40 cleared lines and displays the elapsed time. Hold, combo
+scoring, and hard-drop animation are not implemented.

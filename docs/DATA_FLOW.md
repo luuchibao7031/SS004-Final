@@ -19,6 +19,8 @@
 11. Invisible mode masks locked board cells during rendering. On a clear, the
     pre-clear snapshot is shown on a short alternating flash before masking
     resumes; the core board remains authoritative throughout.
+12. The mode menu initializes `Game.mode`. Sprint reads elapsed animation-frame
+    time and marks the run finished once 40 lines are cleared.
 
 The core never owns DOM, storage, animation, or audio. There is no lifetime
 statistics store, settings store, or server boundary.

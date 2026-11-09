@@ -1,7 +1,7 @@
 import { Game, HEIGHT, WIDTH, SIZE } from "./game.js";
 import { isSoundEnabled, playSound, setSoundEnabled } from "./sound.js";
 
-const game = new Game();
+const game = new Game("classic");
 const boardElement = document.querySelector("#board");
 const nextElement = document.querySelector("#next");
 const effectsElement = document.querySelector("#effects");
@@ -11,8 +11,13 @@ const overlayEyebrow = document.querySelector("#overlayEyebrow");
 const overlayButton = document.querySelector("#overlayButton");
 const highScoreElement = document.querySelector("#highScore");
 let highScore = Number(localStorage.getItem("block-bloom-high-score") || 0);
-let invisibleMode = localStorage.getItem("block-bloom-invisible-mode") === "true";
 let clearFlash = null;
+let menuIsInitial = true;
+const modeMenu = document.querySelector("#modeMenu");
+const modeLabel = document.querySelector("#modeLabel");
+const sprintTimer = document.querySelector("#sprintTimer");
+const modeButton = document.querySelector("#modeButton");
+const closeModeMenu = document.querySelector("#closeModeMenu");
 
 const cells = Array.from({ length: HEIGHT * WIDTH }, (_, index) => {
   const cell = document.createElement("div");
@@ -42,15 +47,17 @@ function draw(now = performance.now()) {
   const shouldShowFlash = flashing && Math.floor(flashAge / 100) % 2 === 0;
   const source = shouldShowFlash ? clearFlash.snapshot : game.board.cells;
   const visible = source.map((row) => [...row]);
-  if (invisibleMode && !shouldShowFlash) {
+  if (game.mode === "invisible" && !shouldShowFlash) {
     for (let row = 1; row < HEIGHT - 1; row += 1) {
       for (let column = 1; column < WIDTH - 1; column += 1) visible[row][column] = " ";
     }
   }
-  const ghostY = game.y + game.board.dropDistance(game.active, game.x, game.y);
-  game.active.cells.forEach((row, rowIndex) => row.forEach((type, columnIndex) => {
-    if (type !== " ") visible[ghostY + rowIndex][game.x + columnIndex] = `ghost-${type}`;
-  }));
+  if (game.mode !== "invisible") {
+    const ghostY = game.y + game.board.dropDistance(game.active, game.x, game.y);
+    game.active.cells.forEach((row, rowIndex) => row.forEach((type, columnIndex) => {
+      if (type !== " ") visible[ghostY + rowIndex][game.x + columnIndex] = `ghost-${type}`;
+    }));
+  }
   game.active.cells.forEach((row, rowIndex) => row.forEach((type, columnIndex) => {
     if (type !== " ") visible[game.y + rowIndex][game.x + columnIndex] = type;
   }));
@@ -62,6 +69,13 @@ function draw(now = performance.now()) {
   document.querySelector("#score").textContent = game.score.value;
   document.querySelector("#lines").textContent = game.score.lines;
   document.querySelector("#level").textContent = game.score.level;
+  modeLabel.textContent = game.mode === "sprint" ? `SPRINT · ${game.sprintTarget} LINES` :
+    game.mode === "invisible" ? "INVISIBLE · GHOST OFF" : "CLASSIC · GHOST ON";
+  sprintTimer.classList.toggle("hidden", game.mode !== "sprint");
+  if (game.mode === "sprint") {
+    const elapsed = Math.max(0, game.elapsedMs);
+    sprintTimer.textContent = `${String(Math.floor(elapsed / 60000)).padStart(2, "0")}:${String(Math.floor(elapsed / 1000) % 60).padStart(2, "0")}.${String(Math.floor(elapsed % 1000 / 100))}`;
+  }
   highScore = Math.max(highScore, game.score.value);
   highScoreElement.textContent = highScore;
   localStorage.setItem("block-bloom-high-score", String(highScore));
@@ -99,7 +113,7 @@ function celebrate(rows) {
 function handleClear(rows) {
   if (!rows || rows.length === 0) return;
   playSound("lineClear");
-  if (invisibleMode && game.lastClearSnapshot) {
+  if (game.mode === "invisible" && game.lastClearSnapshot) {
     clearFlash = { snapshot: game.lastClearSnapshot, started: performance.now(), duration: 700 };
   }
   celebrate(rows);
@@ -122,6 +136,7 @@ function action(command) {
     playSound("gameOver");
     showOverlay("Game over", "NICE RUN", "Restart");
   }
+  if (game.finished) showOverlay("Sprint complete!", `${game.sprintTarget} LINES CLEARED`, "New run");
 }
 
 document.addEventListener("keydown", (event) => {
@@ -154,22 +169,34 @@ soundButton.addEventListener("click", () => {
   setSoundEnabled(!isSoundEnabled());
   updateSoundButton();
 });
-const invisibleButton = document.querySelector("#invisibleButton");
-function updateInvisibleButton() {
-  invisibleButton.textContent = invisibleMode ? "◉" : "◌";
-  invisibleButton.setAttribute("aria-label", invisibleMode ? "Disable invisible mode" : "Enable invisible mode");
-  invisibleButton.classList.toggle("active", invisibleMode);
+function openModeMenu(initial = false) {
+  menuIsInitial = initial;
+  closeModeMenu.classList.toggle("hidden", initial);
+  modeMenu.classList.remove("hidden");
+  game.paused = true;
 }
-invisibleButton.addEventListener("click", () => {
-  invisibleMode = !invisibleMode;
-  localStorage.setItem("block-bloom-invisible-mode", String(invisibleMode));
+function startMode(mode) {
+  game.restart(mode);
+  game.paused = false;
+  game.startedAt = performance.now();
   clearFlash = null;
-  updateInvisibleButton();
+  modeMenu.classList.add("hidden");
+  hideOverlay();
   draw();
+}
+document.querySelectorAll("[data-mode]").forEach((button) => {
+  button.addEventListener("click", () => startMode(button.dataset.mode));
 });
-document.querySelector("#restartButton").addEventListener("click", () => { game.restart(); hideOverlay(); draw(); });
+closeModeMenu.addEventListener("click", () => {
+  if (!menuIsInitial) {
+    modeMenu.classList.add("hidden");
+    game.paused = false;
+  }
+});
+modeButton.addEventListener("click", () => openModeMenu(false));
+document.querySelector("#restartButton").addEventListener("click", () => startMode(game.mode));
 overlayButton.addEventListener("click", () => {
-  if (game.over) game.restart();
+  if (game.over || game.finished) game.restart(game.mode);
   else game.paused = false;
   hideOverlay(); draw();
 });
@@ -179,10 +206,11 @@ function loop(now) {
   handleClear(rows);
   draw(now);
   if (game.over && overlay.classList.contains("hidden")) showOverlay("Game over", "NICE RUN", "Restart");
+  if (game.finished && overlay.classList.contains("hidden")) showOverlay("Sprint complete!", `${game.sprintTarget} LINES CLEARED`, "New run");
   requestAnimationFrame(loop);
 }
 
 draw();
 updateSoundButton();
-updateInvisibleButton();
+openModeMenu(true);
 requestAnimationFrame(loop);

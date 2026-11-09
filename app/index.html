@@ -16,7 +16,6 @@
       </div>
       <div class="top-actions">
         <button class="icon-button" id="soundButton" type="button" aria-label="Toggle sound">♫</button>
-        <button class="icon-button" id="invisibleButton" type="button" aria-label="Toggle invisible mode">◌</button>
         <button class="icon-button" id="pauseButton" type="button" aria-label="Pause game">Ⅱ</button>
       </div>
     </header>
@@ -70,10 +69,31 @@
     </section>
 
     <footer class="footer">
-      <span>Clear lines. Make it bloom.</span>
+      <span id="modeLabel">CLASSIC · GHOST ON</span>
+      <span id="sprintTimer" class="sprint-timer hidden">00:00.0</span>
+      <button class="text-button" id="modeButton" type="button">☷ Mode</button>
       <button class="text-button" id="restartButton" type="button">↻ Restart</button>
     </footer>
   </main>
+  <div id="modeMenu" class="mode-menu" role="dialog" aria-modal="true" aria-labelledby="modeMenuTitle">
+    <div class="mode-card">
+      <p class="eyebrow">CHOOSE YOUR RUN</p>
+      <h2 id="modeMenuTitle">Select mode</h2>
+      <p class="mode-description">Pick a ruleset before the pieces start falling.</p>
+      <div class="mode-options">
+        <button class="mode-option" data-mode="classic" type="button">
+          <strong>Classic</strong><span>Ghost landing guide included.</span>
+        </button>
+        <button class="mode-option" data-mode="invisible" type="button">
+          <strong>Invisible</strong><span>Locked blocks and ghost guide stay hidden.</span>
+        </button>
+        <button class="mode-option" data-mode="sprint" type="button">
+          <strong>Sprint</strong><span>Clear 40 lines as fast as possible.</span>
+        </button>
+      </div>
+      <button class="text-button menu-close hidden" id="closeModeMenu" type="button">Cancel</button>
+    </div>
+  </div>
   <div id="effects" class="effects" aria-hidden="true"></div>
   <script type="module" src="main.js"></script>
 </body>

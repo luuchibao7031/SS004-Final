@@ -102,9 +102,13 @@ export class Score {
 }
 
 export class Game {
-  constructor() { this.restart(); }
+  constructor(mode = "classic") { this.restart(mode); }
 
-  restart() {
+  restart(mode = this.mode) {
+    this.mode = mode;
+    this.sprintTarget = 40;
+    this.elapsedMs = 0;
+    this.finished = false;
     this.board = new Board();
     this.score = new Score();
     this.active = Piece.random();
@@ -115,6 +119,7 @@ export class Game {
     this.over = false;
     this.lastClearSnapshot = null;
     this.lastFall = performance.now();
+    this.startedAt = this.lastFall;
   }
 
   move(dx, dy) {
@@ -141,7 +146,8 @@ export class Game {
   }
 
   tick(now) {
-    if (this.paused || this.over) return null;
+    if (this.paused || this.over || this.finished) return null;
+    this.elapsedMs = now - this.startedAt;
     const interval = Math.max(80, 500 - (this.score.level - 1) * 40);
     if (now - this.lastFall < interval) return null;
     this.lastFall = now;
@@ -155,6 +161,9 @@ export class Game {
     const clearedRows = this.board.clearCompletedLines();
     this.lastClearSnapshot = clearedRows.length ? snapshot : null;
     this.score.addLines(clearedRows.length);
+    if (this.mode === "sprint" && this.score.lines >= this.sprintTarget) {
+      this.finished = true;
+    }
     this.active = this.next;
     this.next = Piece.random();
     this.x = 5; this.y = 1;
