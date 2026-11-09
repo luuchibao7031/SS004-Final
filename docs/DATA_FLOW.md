@@ -1,0 +1,19 @@
+# Data flow
+
+1. A keyboard event reaches `app/main.js`.
+2. The input mapping calls a `Game` command (`move`, `rotate`, `hardDrop`) or
+   toggles pause/restart.
+3. `Game` asks `Board.canPlace` before movement or rotation.
+4. Gravity is evaluated from `requestAnimationFrame` timestamps; a blocked
+   fall calls `Game.lock`.
+5. `Board.lock` mutates locked cells, then `clearCompletedLines` returns row
+   indexes.
+6. `Score.addLines` updates points, line count, and derived level.
+7. `main.js` renders the board and ghost projection and draws the next piece.
+8. A non-empty clear result triggers popup/particle effects and nothing else.
+9. High score is the only persisted value, stored under
+   `block-bloom-high-score` in browser localStorage.
+
+The core never owns DOM, storage, animation, or audio. There is currently no
+audio event stream, lifetime-statistics store, settings store, or server
+boundary.
