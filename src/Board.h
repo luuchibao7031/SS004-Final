@@ -10,6 +10,9 @@ public:
 
     Board();
 
+    // TV1 Core Module: Khoi tao ban co voi vien tuong '#' va o trong ' '
+    void initBoard();
+
     bool canPlace(const Piece& piece, int x, int y) const;
     int dropDistance(const Piece& piece, int x, int y) const;
     void lock(const Piece& piece, int x, int y);

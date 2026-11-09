@@ -1,0 +1,75 @@
+\subsection{Mô hình kiến trúc phần mềm (Software Architecture)}
+\label{sec:architecture}
+
+Để đảm bảo tính độc lập giữa các thành viên, khả năng bảo trì và dễ dàng kiểm thử đơn vị, nhóm đã áp dụng mô hình kiến trúc phân lớp hướng đối tượng (Modular Layered Architecture). Kiến trúc tách biệt rõ ràng giữa dữ liệu bàn cờ/khối gạch, luật chơi điều phối, và tầng nhập liệu/kết xuất console.
+
+\subsubsection{Các tầng kiến trúc chính}
+Hệ thống được chia thành 3 tầng chức năng độc lập:
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{Tầng mô hình dữ liệu (Domain Model Layer):}
+  \begin{itemize}
+    \item \texttt{Board} (TV1): Đại diện cho bàn cờ kích thước $20 \times 15$ ($H \times W$). Chịu trách nhiệm khởi tạo biên tường và ô trống (\texttt{initBoard}), kiểm tra không gian hợp lệ (\texttt{canPlace}), tính toán khoảng cách rơi của khối ảo (\texttt{dropDistance}), khóa khối vào bàn cờ (\texttt{lock}) và phát hiện/xóa hàng đầy (\texttt{clearCompletedLines}).
+    \item \texttt{Piece} (TV2): Quản lý ma trận $4 \times 4$ đại diện cho 7 loại tetromino chuẩn ($I, O, T, S, Z, J, L$). Cung cấp phương thức sinh ngẫu nhiên (\texttt{random}) và xoay 90$^\circ$ theo chiều kim đồng hồ (\texttt{rotatedClockwise}).
+  \end{itemize}
+
+  \item \textbf{Tầng điều phối trò chơi (Game Logic \& Controller Layer):}
+  \begin{itemize}
+    \item \texttt{Game}: Là trung tâm điều phối trạng thái trò chơi (Finite State Machine). Quản lý chu trình game loop (chu kỳ khung hình 16 ms), bộ đếm thời gian rơi tự động (timer rơi giảm dần theo level), xử lý điều hướng trái/phải, rơi nhanh (hard drop), cơ chế chống kẹt tường khi xoay (wall kick), và phát hiện Game Over.
+    \item \texttt{Score} (TV4): Quản lý điểm số tích lũy, hệ số điểm theo số hàng xóa đồng thời, cấp độ hiện tại (level) và số dòng đã xóa (lines).
+  \end{itemize}
+
+  \item \textbf{Tầng giao diện \& nhập liệu (Presentation \& Hardware I/O Layer):}
+  \begin{itemize}
+    \item \texttt{Renderer} (TV1): Quản trị toàn bộ giao diện console. Sử dụng trực tiếp API \texttt{SetConsoleTextAttribute} của Windows để đổ màu cho từng loại khối gạch, đường viền và nhãn thông tin. Thiết kế bố cục Sidebar bên phải song song với bàn cờ 20 dòng để hiển thị ô tĩnh ``Next Block'', điểm số, cấp độ và hướng dẫn phím. Tối ưu hóa bộ đệm console không nhấp nháy (zero-flicker) bằng cách thiết lập vị trí con trỏ \texttt{SetConsoleCursorPosition} và ẩn con trỏ nhấp nháy (\texttt{SetConsoleCursorInfo}).
+    \item \texttt{Input} (TV3): Đọc tín hiệu phím không chặn (non-blocking) qua \texttt{\_kbhit()} và \texttt{\_getch()}, chuyển đổi thành các lệnh điều khiển trừu tượng (\texttt{Command::MoveLeft}, \texttt{Command::Rotate}, \texttt{Command::HardDrop}\ldots).
+  \end{itemize}
+\end{enumerate}
+
+\subsubsection{Sơ đồ khối kiến trúc hệ thống}
+Hình~\ref{fig:architecture} minh họa sơ đồ quan hệ và luồng dữ liệu giữa các mô-đun trong trò chơi Tetris.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=1.6cm and 1.8cm,
+  box/.style={rectangle, draw=uitblue, line width=1pt, fill=headfill!35, rounded corners=3pt, minimum width=3.2cm, minimum height=1.1cm, align=center, font=\small\bfseries},
+  presBox/.style={rectangle, draw=uitblue!80!black, line width=1pt, fill=cyan!12, rounded corners=3pt, minimum width=3.2cm, minimum height=1.1cm, align=center, font=\small\bfseries},
+  dataBox/.style={rectangle, draw=uitblue!80!black, line width=1pt, fill=green!12, rounded corners=3pt, minimum width=3.2cm, minimum height=1.1cm, align=center, font=\small\bfseries},
+  arrow/.style={-{Stealth[length=2.5mm]}, line width=0.8pt, draw=black!75}
+]
+
+  % Controller Layer
+  \node[box, fill=orange!15] (game) at (0, 0) {Game Controller\\(\texttt{Game})};
+  \node[box, fill=orange!15] (score) at (4.5, 0) {Score \& Level\\(\texttt{Score})};
+
+  % Presentation Layer (Top)
+  \node[presBox] (input) at (-3.8, 2.0) {Input Module\\(\texttt{Input})};
+  \node[presBox] (renderer) at (2.2, 2.0) {Console Renderer \& Sidebar\\(\texttt{Renderer} - TV1)};
+
+  % Data Layer (Bottom)
+  \node[dataBox] (board) at (-2.2, -2.0) {Board Matrix ($20\times 15$)\\(\texttt{Board} - TV1)};
+  \node[dataBox] (piece) at (2.5, -2.0) {Tetromino ($4\times 4$)\\(\texttt{Piece} - TV2)};
+
+  % Connections
+  \draw[arrow] (input) -- node[left, font=\scriptsize] {Command} (game);
+  \draw[arrow] (game) -- node[above, font=\scriptsize] {Updates} (score);
+  \draw[arrow] (game) -- node[right, font=\scriptsize] {Render State} (renderer);
+  \draw[arrow] (score) |- node[near end, right, font=\scriptsize] {Score/Level} (renderer);
+
+  \draw[arrow] (game) -- node[left, font=\scriptsize] {Collisions/Lock} (board);
+  \draw[arrow] (game) -- node[right, font=\scriptsize] {Active/Next} (piece);
+  \draw[arrow] (board) |- node[near end, left, font=\scriptsize] {Cells} (renderer);
+  \draw[arrow] (piece) -- node[right, font=\scriptsize] {Next Preview} (renderer);
+
+\end{tikzpicture}
+\caption{Sơ đồ mô hình kiến trúc phân lớp và luồng tương tác giữa các module}
+\label{fig:architecture}
+\end{figure}
+
+\subsubsection{Khả năng tương thích đa nền tảng và đa IDE}
+Để đảm bảo tất cả thành viên trong nhóm có thể lập trình trên các IDE khác nhau (Visual Studio, VS Code, Dev-C++, Code::Blocks, CLion), mã nguồn tuân thủ các nguyên tắc:
+\begin{itemize}
+  \item Chuẩn C++17 thuần túy (\texttt{std::array}, \texttt{std::chrono}, \texttt{std::string}), không phụ thuộc vào thư viện bên ngoài.
+  \item Các hàm Windows API (\texttt{SetConsoleTextAttribute}, \texttt{SetConsoleCursorPosition}) được đóng gói cẩn thận bên trong khối \texttt{\#ifdef \_WIN32}, cho phép biên dịch mượt mà trên MinGW GCC, Clang và MSVC, đồng thời có cơ chế fallback không gây lỗi trên môi trường khác.
+  \item Thiết kế tách rời giúp mỗi thành viên phát triển trên nhánh Git riêng mà không xung đột mã nguồn.
+\end{itemize}

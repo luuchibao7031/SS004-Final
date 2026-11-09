@@ -1,6 +1,10 @@
 #include "Board.h"
 
 Board::Board() {
+    initBoard();
+}
+
+void Board::initBoard() {
     for (int row = 0; row < Height; ++row) {
         for (int column = 0; column < Width; ++column) {
             const bool isWall = row == 0 || row == Height - 1 ||
