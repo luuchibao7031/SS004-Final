@@ -9,7 +9,8 @@
 #include <thread>
 
 Game::Game()
-    : activePiece_(Piece::random()), pieceX_(5), pieceY_(1) {}
+    : activePiece_(Piece::random()), nextPiece_(Piece::random()),
+      pieceX_(5), pieceY_(1) {}
 
 bool Game::canMove(int deltaX, int deltaY) const {
     return board_.canPlace(activePiece_, pieceX_ + deltaX, pieceY_ + deltaY);
@@ -36,7 +37,9 @@ bool Game::tryRotate() {
 }
 
 void Game::spawnPiece() {
-    activePiece_ = Piece::random();
+    // TV1: khi khoi hien tai ha xuong, khoi tiep theo tro thanh khoi hien tai
+    activePiece_ = nextPiece_;
+    nextPiece_   = Piece::random();
     pieceX_ = 5;
     pieceY_ = 1;
 }
@@ -105,7 +108,7 @@ void Game::run() {
                 stateChanged = true;
                 if (!board_.canPlace(activePiece_, pieceX_, pieceY_)) {
                     Renderer::draw(board_, activePiece_, pieceX_, pieceY_,
-                                   score_.value(), score_.level());
+                                   score_.value(), score_.level(), nextPiece_);
                     std::cout << "Game over!\n";
                     return;
                 }
@@ -115,7 +118,7 @@ void Game::run() {
 
         if (stateChanged) {
             Renderer::draw(board_, activePiece_, pieceX_, pieceY_,
-                           score_.value(), score_.level());
+                           score_.value(), score_.level(), nextPiece_);
             stateChanged = false;
         }
         std::this_thread::sleep_for(FrameInterval);
