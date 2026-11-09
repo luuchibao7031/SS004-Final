@@ -1,0 +1,37 @@
+\subsection{Báo cáo đánh giá và Review mã nguồn cho TV2 (Đạt)}
+\label{sec:review-tv2}
+
+\textbf{Người thực hiện review:} TV1 (Bảo) -- Phụ trách Khung hiển thị, Giao diện Console \& Khung thông tin.\\
+\textbf{Người được review:} TV2 (Đạt) -- Phụ trách Khối gạch \& Cơ chế sinh ngẫu nhiên.\\
+\textbf{Mục tiêu review:} Đảm bảo cấu trúc dữ liệu khối gạch (\texttt{Piece}) chính xác về mặt hình học, tương thích hoàn toàn với hệ thống màu sắc hiển thị (\texttt{Renderer}) và thuật toán xoay/va chạm (\texttt{Game}/\texttt{Board}).
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}p{3.2cm} X c@{}}
+\toprule
+\textbf{Tiêu chí đánh giá} & \textbf{Chi tiết nhận xét của TV1} & \textbf{Kết quả}\\
+\midrule
+\textbf{1. Định nghĩa 7 khối Tetris} &
+Toàn bộ 7 khối kinh điển ($I, O, T, S, Z, J, L$) được định nghĩa chuẩn xác dưới dạng ma trận kích thước $4 \times 4$. Vị trí các ô vuông thành phần khớp với chuẩn Tetris thế giới. & Đạt (Xuất sắc)\\
+
+\textbf{2. Cơ chế sinh khối (\texttt{rand()})} &
+Hàm \texttt{Piece::random()} lựa chọn ngẫu nhiên đồng đều trong tập 7 khối cơ bản. Khi kết hợp với \texttt{std::srand(time(nullptr))} ở hàm \texttt{main}, mỗi lượt chơi đều sinh chuỗi khối khác nhau. & Đạt\\
+
+\textbf{3. Mã định danh màu sắc \& Giao diện TV1} &
+Mỗi khối gạch được lưu giữ ký tự đại diện duy nhất ('\texttt{I}', '\texttt{O}', '\texttt{T}', '\texttt{S}', '\texttt{Z}', '\texttt{J}', '\texttt{L}'). \texttt{Renderer} của TV1 đọc trực tiếp ký tự này để gọi \texttt{SetConsoleTextAttribute} và gán đúng màu quy định (I: Cyan, O: Yellow, T: Magenta, S: Green, Z: Red, J: Blue, L: Orange). Không phát sinh xung đột định danh. & Đạt (Tương thích 100\%)\\
+
+\textbf{4. Tính toàn vẹn khi xoay (phối hợp TV3)} &
+Phương thức \texttt{rotatedClockwise()} trả về một thực thể \texttt{Piece} mới được xoay theo công thức ma trận, giữ cho dữ liệu gốc không bị biến đổi đột ngột (immutable design), giúp TV3 kiểm tra va chạm wall-kick an toàn. & Đạt\\
+\bottomrule
+\end{tabularx}
+\caption{Bảng đánh giá review code của TV1 dành cho TV2}
+\end{table}
+
+\textbf{Đánh giá chung:}
+Mã nguồn của TV2 được viết rất mạch lạc, tuân thủ tiêu chuẩn C++ hiện đại, tách biệt hoàn toàn giữa dữ liệu mẫu (\texttt{Templates}) và thực thể khối (\texttt{Piece}).
+
+\textbf{Đề xuất cải tiến cho giai đoạn tiếp theo:}
+\begin{enumerate}
+  \item \textbf{Cơ chế sinh khối 7-Bag (Random Generator Guideline):} Hiện tại \texttt{std::rand() \% 7} có xác suất sinh lặp lại một loại khối liên tiếp hoặc lâu xuất hiện khối $I$. Đề xuất TV2 ở giai đoạn nâng cao triển khai thuật toán xáo trộn một túi gồm đủ 7 khối (7-Bag Randomizer) để trải nghiệm chơi cân bằng hơn.
+  \item \textbf{Tối ưu hóa hằng số:} Có thể chuyển mảng \texttt{Templates} sang \texttt{constexpr} tĩnh hoàn toàn để tối ưu hóa bộ nhớ và hiệu năng lúc biên dịch.
+\end{enumerate}
