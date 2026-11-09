@@ -100,8 +100,8 @@ g++ -std=c++17 -Wall -Wextra \
 ```
 
 The checks cover four clockwise rotations returning a piece to its original
-orientation, board-boundary rejection, and collision rejection after locking
-a piece.
+orientation, board-boundary rejection, collision rejection after locking a
+piece, and hard-drop distance at the bottom boundary.
 
 Score and level progression are checked separately:
 

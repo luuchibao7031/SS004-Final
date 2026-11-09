@@ -32,10 +32,18 @@ void testBoardRejectsInvalidAndOccupiedPositions() {
     assert(!board.canPlace(piece, 1, 1));
 }
 
+void testDropDistanceStopsAtBottom() {
+    const Board board;
+    const Piece piece('O');
+
+    assert(board.dropDistance(piece, 1, 1) == Board::Height - 4);
+}
+
 }  // namespace
 
 int main() {
     testPieceRotatesBackToOriginal();
     testBoardRejectsInvalidAndOccupiedPositions();
+    testDropDistanceStopsAtBottom();
     return 0;
 }
