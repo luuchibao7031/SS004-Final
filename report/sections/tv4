@@ -1,0 +1,93 @@
+\section{Điểm số, cấp độ và độ khó}
+
+\subsection{Tính điểm và combo}
+
+Mô-đun \texttt{Score} lưu bốn giá trị: tổng điểm \texttt{value\_}, tổng số dòng
+đã xóa \texttt{lines\_}, biến đếm trạng thái \texttt{combo\_} và số dòng của lần
+xóa gần nhất \texttt{lastClearLines\_}. Mỗi khi một khối được cố định,
+\texttt{Game::lockActivePiece()} gọi \texttt{Board::clearCompletedLines()} để
+lấy số dòng vừa xóa rồi chuyển cho \texttt{Score::addLines()}, kể cả khi số này
+bằng $0$. Điểm cơ bản phụ thuộc vào số dòng xóa cùng lúc và được nhân với cấp
+độ hiện tại $L$:
+\[
+    \Delta S = P_k \cdot L + 50 \cdot c \cdot L,
+\]
+trong đó $P_k \in \{100, 300, 500, 800\}$ tương ứng với việc xóa $k = 1, 2, 3, 4$
+dòng, còn $c$ là giá trị của \texttt{combo\_} trước khi tăng. Cách chia mức
+điểm này khuyến khích người chơi xóa nhiều dòng một lần: xóa hai dòng cùng lúc
+được $300$ điểm, trong khi xóa hai lần mỗi lần một dòng chỉ được $200$ điểm.
+Giá trị $k$ nằm ngoài khoảng từ $0$ đến $4$ bị bỏ qua để dữ liệu sai không làm
+thay đổi trạng thái điểm.
+
+Cơ chế combo thưởng thêm cho các lần cố định khối liên tiếp đều xóa được dòng.
+Sau mỗi lần xóa dòng, \texttt{combo\_} tăng thêm $1$; nếu một lần cố định khối
+không xóa dòng nào, \texttt{combo\_} trở về $0$. Vì vậy lần xóa đầu tiên chưa có
+điểm thưởng, lần thứ hai thưởng $50L$ điểm, lần thứ ba thưởng $100L$ điểm, và
+cứ thế tiếp tục. Ví dụ ở cấp độ $1$, ba lần xóa liên tiếp gồm $1$ dòng, $1$ dòng
+và $2$ dòng cho tổng điểm $100 + 150 + 400 = 650$. Ở cấp độ $3$, xóa $2$ dòng khi
+combo đang là $1$ cho $300 \cdot 3 + 50 \cdot 1 \cdot 3 = 1050$ điểm.
+
+\subsection{Cấp độ và tốc độ rơi}
+
+Cấp độ không được lưu riêng mà được suy ra từ số dòng đã xóa $n$:
+\[
+    L = \left\lfloor \frac{n}{10} \right\rfloor + 1.
+\]
+Như vậy cứ mỗi $10$ dòng bị xóa thì cấp độ tăng thêm một. Chu kỳ rơi tự động của
+khối, tức thời gian chờ giữa hai lần khối rơi xuống một ô, được tính bằng hàm
+\texttt{Score::fallIntervalMs()}:
+\[
+    t(L) = \max\bigl(80,\; 500 - 40\,(L-1)\bigr)\ \text{(mili giây)}.
+\]
+Cấp độ $1$ có $t = 500$ ms, mỗi cấp độ sau giảm $40$ ms và giá trị này đạt
+mức thấp nhất $80$ ms từ cấp độ $12$ trở đi, giúp trò chơi luôn còn khả năng
+điều khiển được.
+
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Cấp độ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & $\ge 12$ \\
+\hline
+$t$ (ms) & 500 & 460 & 420 & 380 & 340 & 300 & 260 & 220 & 180 & 140 & 100 & 80 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Vòng lặp trò chơi và hàm \texttt{Sleep()}}
+
+Vòng lặp chính trong \texttt{Game::run()} dùng hàm \texttt{Sleep()} của thư
+viện \texttt{<windows.h>} để nghỉ giữa các lượt xử lý; trên hệ điều hành khác
+chương trình dùng \texttt{std::this\_thread::sleep\_for} để vẫn biên dịch được.
+Thời gian nghỉ giảm dần theo cấp độ và được tính bằng
+\texttt{Score::pollIntervalMs()}:
+\[
+    p(L) = \max\left(1,\; \left\lfloor \frac{t(L)}{30} \right\rfloor\right)\ \text{(mili giây)},
+\]
+nghĩa là $16$ ms ở cấp độ $1$, giảm dần còn $2$ ms từ cấp độ $12$ trở đi. Cấp độ
+càng cao thì vòng lặp kiểm tra phím và thời gian càng dày, phù hợp với việc khối
+rơi nhanh hơn.
+
+Thời điểm khối thực sự rơi thêm một ô không phụ thuộc trực tiếp vào
+\texttt{Sleep()}. Mỗi lượt, chương trình so sánh thời gian đã trôi qua kể từ lần
+rơi trước, đo bằng \texttt{std::chrono::steady\_clock}, với $t(L)$ để quyết định
+khối có rơi hay không. Cách làm này tránh để phím bấm bị trễ tới $500$ ms ở cấp độ
+đầu nếu cho \texttt{Sleep()} nghỉ bằng đúng $t(L)$, và cũng không làm sai tốc độ
+rơi khi độ phân giải của \texttt{Sleep()} trên Windows phụ thuộc vào hệ thống.
+
+\subsection{Cố định khối, rơi nhanh và kết thúc trò chơi}
+
+Bàn chơi \texttt{board\_} chỉ thay đổi khi khối được cố định bằng
+\texttt{Board::lock()}, còn khối đang rơi được \texttt{Renderer} vẽ chồng lên bàn
+chơi ở mỗi khung hình, nên việc ``xóa khối tạm thời khi di chuyển'' không để lại
+dấu vết trên bàn chơi. Khối được cố định khi không thể rơi thêm, hoặc ngay lập tức
+khi người chơi bấm phím rơi nhanh: khối được đưa xuống vị trí thấp nhất rồi cố
+định luôn, đồng hồ rơi được đặt lại cho khối mới. Sau mỗi lần cố định khối,
+\texttt{Game::isGameOver()} kiểm tra khối mới có đặt được vào bàn chơi hay không;
+nếu không thì trò chơi kết thúc.
+
+\subsection{Hiển thị combo}
+
+Thanh bên của giao diện có một dòng riêng hiển thị \texttt{Combo xN} kèm kiểu xóa
+gần nhất (Single, Double, Triple hoặc Tetris tương ứng $1$, $2$, $3$, $4$ dòng),
+và hiển thị \texttt{Combo: --} khi chưa có combo. Dòng này được căn giữa trong
+đúng $21$ ký tự như các dòng còn lại của thanh bên nên không làm lệch giao diện.
