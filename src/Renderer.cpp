@@ -62,7 +62,8 @@ std::string centerText(const std::string& s, int totalWidth) {
     return std::string(lp, ' ') + s + std::string(rp, ' ');
 }
 
-void appendSidebarLine(std::string& out, int row, int score, int level, const Piece& nextPiece) {
+void appendSidebarLine(std::string& out, int row, int score, int level, const Piece& nextPiece,
+                       int combo, int lastClearLines) {
     // Total sidebar width is exactly 21 characters on every single row
     switch (row) {
     case 1:
@@ -120,6 +121,21 @@ void appendSidebarLine(std::string& out, int row, int score, int level, const Pi
     case 16:
         out += winBg; out += "    "; out += cardBrd; out += "╰───────────╯"; out += winBg; out += "    "; out += reset;
         break;
+    case 17: {
+        // TV4: dong combo + kieu xoa gan nhat, vd "Combo x2 Double" (dung 21 ky tu)
+        static const char* const clearNames[] = {"", "Single", "Double", "Triple", "Tetris"};
+        std::string status = "Combo: --";
+        if (combo > 0) {
+            status = "Combo x" + std::to_string(combo);
+            if (lastClearLines >= 1 && lastClearLines <= 4) {
+                status += std::string(" ") + clearNames[lastClearLines];
+            }
+        }
+        out += (combo > 0 ? textWhite : textDim);
+        out += centerText(status, 21);
+        out += reset;
+        break;
+    }
     case 18:
         out += textDim; out += "  A/D:Move  W:Rotate "; out += reset;
         break;
@@ -219,7 +235,7 @@ void Renderer::resetColor() {
 
 void Renderer::draw(const Board& board, const Piece& activePiece,
                     int pieceX, int pieceY, int score, int level,
-                    const Piece& nextPiece) {
+                    const Piece& nextPiece, int combo, int lastClearLines) {
     initConsole();
 
     // Prepare full frame in memory buffer for zero-flicker rendering
@@ -301,7 +317,7 @@ void Renderer::draw(const Board& board, const Piece& activePiece,
         frame += "    ";
 
         // 2. Draw Sidebar Row (exactly 21 characters total width)
-        appendSidebarLine(frame, row, score, level, nextPiece);
+        appendSidebarLine(frame, row, score, level, nextPiece, combo, lastClearLines);
 
         // Outer Right Margin (4 spaces with winBg)
         frame += winBg;
