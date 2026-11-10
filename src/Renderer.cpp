@@ -26,16 +26,19 @@ const std::string textWhite = "\x1b[48;2;44;44;127m\x1b[97;1m"; // white = (255,
 const std::string textDim   = "\x1b[48;2;44;44;127m\x1b[38;2;165;185;235m";
 const std::string reset     = "\x1b[0m";
 
-// Exact Tetromino colors from colors.py with bordered square tile '■ '
+// Exact Tetromino colors from colors.py. Square tile '█▊ ': a full block
+// plus a 3/4 block span 1.75 terminal columns over one text row - calibrated
+// by eye on the actual terminal font so each mino renders as a true 1:1
+// square. The remaining gap keeps neighbouring minos close, never touching.
 const std::string getPieceBlock(char cell) {
     switch (cell) {
-    case 'I': return cellBg + "\x1b[38;2;21;204;209m■ "; // cyan (21, 204, 209)
-    case 'J': return cellBg + "\x1b[38;2;13;64;216m■ ";   // blue (13, 64, 216)
-    case 'L': return cellBg + "\x1b[38;2;226;116;17m■ "; // orange (226, 116, 17)
-    case 'O': return cellBg + "\x1b[38;2;237;234;4m■ ";   // yellow (237, 234, 4)
-    case 'S': return cellBg + "\x1b[38;2;47;230;23m■ ";   // green (47, 230, 23)
-    case 'T': return cellBg + "\x1b[38;2;166;0;247m■ ";   // purple (166, 0, 247)
-    case 'Z': return cellBg + "\x1b[38;2;232;18;18m■ ";   // red (232, 18, 18)
+    case 'I': return cellBg + "\x1b[38;2;21;204;209m█▊ "; // cyan (21, 204, 209)
+    case 'J': return cellBg + "\x1b[38;2;13;64;216m█▊ ";   // blue (13, 64, 216)
+    case 'L': return cellBg + "\x1b[38;2;226;116;17m█▊ "; // orange (226, 116, 17)
+    case 'O': return cellBg + "\x1b[38;2;237;234;4m█▊ ";   // yellow (237, 234, 4)
+    case 'S': return cellBg + "\x1b[38;2;47;230;23m█▊ ";   // green (47, 230, 23)
+    case 'T': return cellBg + "\x1b[38;2;200;156;255m█▊ ";   // purple #c89cff (200, 156, 255)
+    case 'Z': return cellBg + "\x1b[38;2;232;18;18m█▊ ";   // red (232, 18, 18)
     default:  return "";
     }
 }
@@ -43,14 +46,14 @@ const std::string getPieceBlock(char cell) {
 // Next block in Sidebar (drawn on cardBg)
 const std::string getNextCardBlock(char cell) {
     switch (cell) {
-    case 'I': return cardBg + "\x1b[38;2;21;204;209m■ ";
-    case 'J': return cardBg + "\x1b[38;2;13;64;216m■ ";
-    case 'L': return cardBg + "\x1b[38;2;226;116;17m■ ";
-    case 'O': return cardBg + "\x1b[38;2;237;234;4m■ ";
-    case 'S': return cardBg + "\x1b[38;2;47;230;23m■ ";
-    case 'T': return cardBg + "\x1b[38;2;166;0;247m■ ";
-    case 'Z': return cardBg + "\x1b[38;2;232;18;18m■ ";
-    default:  return cardBg + "  ";
+    case 'I': return cardBg + "\x1b[38;2;21;204;209m█▊ ";
+    case 'J': return cardBg + "\x1b[38;2;13;64;216m█▊ ";
+    case 'L': return cardBg + "\x1b[38;2;226;116;17m█▊ ";
+    case 'O': return cardBg + "\x1b[38;2;237;234;4m█▊ ";
+    case 'S': return cardBg + "\x1b[38;2;47;230;23m█▊ ";
+    case 'T': return cardBg + "\x1b[38;2;200;156;255m█▊ ";
+    case 'Z': return cardBg + "\x1b[38;2;232;18;18m█▊ ";
+    default:  return cardBg + "   ";
     }
 }
 
@@ -63,27 +66,27 @@ std::string centerText(const std::string& s, int totalWidth) {
 }
 
 void appendSidebarLine(std::string& out, int row, int score, int level, const Piece& nextPiece) {
-    // Total sidebar width is exactly 21 characters on every single row
+    // Keep sidebar labels centered in the 24-column card layout.
     switch (row) {
     case 1:
-        out += textWhite; out += "        Score        "; out += reset;
+        out += textWhite; out += centerText("Score", 24); out += reset;
         break;
     case 2:
-        out += winBg; out += "    "; out += cardBrd; out += "╭───────────╮"; out += winBg; out += "    "; out += reset;
+        out += winBg; out += "    "; out += cardBrd; out += "╭──────────────╮"; out += winBg; out += "    "; out += reset;
         break;
     case 3:
         out += winBg; out += "    "; out += cardBrd; out += "│";
-        out += cardBg; out += centerText(std::to_string(score), 11);
+        out += cardBg; out += centerText(std::to_string(score), 14);
         out += cardBrd; out += "│"; out += winBg; out += "    "; out += reset;
         break;
     case 4:
-        out += winBg; out += "    "; out += cardBrd; out += "╰───────────╯"; out += winBg; out += "    "; out += reset;
+        out += winBg; out += "    "; out += cardBrd; out += "╰──────────────╯"; out += winBg; out += "    "; out += reset;
         break;
     case 6:
-        out += textWhite; out += "        Next         "; out += reset;
+        out += textWhite; out += centerText("Next", 24); out += reset;
         break;
     case 7:
-        out += winBg; out += "    "; out += cardBrd; out += "╭───────────╮"; out += winBg; out += "    "; out += reset;
+        out += winBg; out += "    "; out += cardBrd; out += "╭──────────────╮"; out += winBg; out += "    "; out += reset;
         break;
     case 8:
     case 9:
@@ -96,38 +99,38 @@ void appendSidebarLine(std::string& out, int row, int score, int level, const Pi
             if (cell != ' ') {
                 out += getNextCardBlock(cell);
             } else {
-                out += cardBg; out += "  ";
+                out += cardBg; out += "   ";
             }
         }
-        out += cardBg; out += "  ";
+        out += cardBg; out += " ";
         out += cardBrd; out += "│"; out += winBg; out += "    "; out += reset;
         break;
     }
     case 11:
-        out += winBg; out += "    "; out += cardBrd; out += "╰───────────╯"; out += winBg; out += "    "; out += reset;
+        out += winBg; out += "    "; out += cardBrd; out += "╰──────────────╯"; out += winBg; out += "    "; out += reset;
         break;
     case 13:
-        out += textWhite; out += "        Level        "; out += reset;
+        out += textWhite; out += centerText("Level", 24); out += reset;
         break;
     case 14:
-        out += winBg; out += "    "; out += cardBrd; out += "╭───────────╮"; out += winBg; out += "    "; out += reset;
+        out += winBg; out += "    "; out += cardBrd; out += "╭──────────────╮"; out += winBg; out += "    "; out += reset;
         break;
     case 15:
         out += winBg; out += "    "; out += cardBrd; out += "│";
-        out += cardBg; out += centerText(std::to_string(level), 11);
+        out += cardBg; out += centerText(std::to_string(level), 14);
         out += cardBrd; out += "│"; out += winBg; out += "    "; out += reset;
         break;
     case 16:
-        out += winBg; out += "    "; out += cardBrd; out += "╰───────────╯"; out += winBg; out += "    "; out += reset;
+        out += winBg; out += "    "; out += cardBrd; out += "╰──────────────╯"; out += winBg; out += "    "; out += reset;
         break;
     case 18:
-        out += textDim; out += "  A/D:Move  W:Rotate "; out += reset;
+        out += textDim; out += centerText("A/D:Move  W:Rotate", 24); out += reset;
         break;
     case 19:
-        out += textDim; out += "  X:Drop    Q:Quit   "; out += reset;
+        out += textDim; out += centerText("X:Drop    Q:Quit", 24); out += reset;
         break;
     default:
-        out += winBg; out += "                     "; out += reset;
+        out += winBg; out += std::string(24, ' '); out += reset;
         break;
     }
 }
@@ -161,10 +164,10 @@ void Renderer::initConsole() {
         CONSOLE_CURSOR_INFO cursorInfo = { sizeof(cursorInfo), FALSE };
         SetConsoleCursorInfo(hOut, &cursorInfo);
 
-        // Ensure console buffer is at least 65 cols x 24 rows
+        // Ensure console buffer is at least 80 cols x 24 rows
         CONSOLE_SCREEN_BUFFER_INFO csbi;
         if (GetConsoleScreenBufferInfo(hOut, &csbi)) {
-            SHORT targetCols = 65;
+            SHORT targetCols = 80;
             SHORT targetRows = 24;
             if (csbi.dwSize.X < targetCols || csbi.dwSize.Y < targetRows) {
                 COORD newSize = {
@@ -238,21 +241,21 @@ void Renderer::draw(const Board& board, const Piece& activePiece,
 
         // 1. Draw Playfield
         if (row == 0) {
-            // Top border: ┌ + 13 * ── + ┐ (exactly 28 characters)
+            // Top border: ┌ + 15 * ─── + ┐ (exactly 47 characters)
             frame += borderCol;
             frame += "┌";
-            for (int c = 0; c < numPlayableCols; ++c) frame += "──";
+            for (int c = 0; c < numPlayableCols; ++c) frame += "───";
             frame += "┐";
             frame += reset;
         } else if (row == Board::Height - 1) {
-            // Bottom border: └ + 13 * ── + ┘ (exactly 28 characters)
+            // Bottom border: └ + 15 * ─── + ┘ (exactly 47 characters)
             frame += borderCol;
             frame += "└";
-            for (int c = 0; c < numPlayableCols; ++c) frame += "──";
+            for (int c = 0; c < numPlayableCols; ++c) frame += "───";
             frame += "┘";
             frame += reset;
         } else {
-            // Content row: │ + 13 cells + │ (exactly 28 characters)
+            // Content row: │ + 15 cells (3 cols each) + │ (exactly 47 characters)
             frame += borderCol;
             frame += "│";
             frame += reset;
@@ -277,12 +280,12 @@ void Renderer::draw(const Board& board, const Piece& activePiece,
 
                 if (cell == ' ') {
                     frame += dotCol;
-                    frame += "· ";
+                    frame += "·  ";
                     frame += reset;
                 } else if (cell == '.') {
                     // Hollow square for ghost position
                     frame += ghostCol;
-                    frame += "□ ";
+                    frame += "□□ ";
                     frame += reset;
                 } else {
                     // Solid bordered square tile for active and locked pieces
@@ -300,12 +303,12 @@ void Renderer::draw(const Board& board, const Piece& activePiece,
         frame += winBg;
         frame += "    ";
 
-        // 2. Draw Sidebar Row (exactly 21 characters total width)
+        // 2. Draw Sidebar Row (exactly 24 characters total width)
         appendSidebarLine(frame, row, score, level, nextPiece);
 
-        // Outer Right Margin (4 spaces with winBg)
+        // Outer Right Margin (2 spaces with winBg)
         frame += winBg;
-        frame += "    ";
+        frame += "  ";
         frame += reset;
 
         // No trailing newline on the last row to prevent vertical scrolling

@@ -3,10 +3,11 @@
 #include "Piece.h"
 
 #include <array>
+
 class Board {
 public:
     static constexpr int Height = 20;
-    static constexpr int Width = 15;
+    static constexpr int Width = 17;
 
     Board();
 
