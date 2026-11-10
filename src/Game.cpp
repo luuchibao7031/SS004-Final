@@ -3,14 +3,14 @@
 #include "Input.h"
 #include "Renderer.h"
 
-#include <chrono>
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <thread>
 
 Game::Game()
     : activePiece_(Piece::random()), nextPiece_(Piece::random()),
-      pieceX_(5), pieceY_(1) {}
+      pieceX_((Board::Width - Piece::Size) / 2), pieceY_(1) {}
 
 bool Game::canMove(int deltaX, int deltaY) const {
     return board_.canPlace(activePiece_, pieceX_ + deltaX, pieceY_ + deltaY);
@@ -40,7 +40,7 @@ void Game::spawnPiece() {
     // TV1: khi khoi hien tai ha xuong, khoi tiep theo tro thanh khoi hien tai
     activePiece_ = nextPiece_;
     nextPiece_   = Piece::random();
-    pieceX_ = 5;
+    pieceX_ = (Board::Width - Piece::Size) / 2;
     pieceY_ = 1;
 }
 

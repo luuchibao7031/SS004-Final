@@ -25,6 +25,15 @@ g++ -std=c++17 -Wall -Wextra src/*.cpp -o build/tetris.exe
 ./build/tetris.exe
 ```
 
+On macOS, build and run from the project directory with:
+
+```bash
+clang++ -std=c++17 -Wall -Wextra \
+  -isystem "$(xcrun --show-sdk-path)/usr/include/c++/v1" \
+  src/*.cpp -o build/tetris
+./build/tetris
+```
+
 The implementation details, development process, and manual test checklist
 are documented in [`docs/movement-rotation.md`](docs/movement-rotation.md).
 

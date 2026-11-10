@@ -5,6 +5,26 @@
 
 namespace {
 
+void testTetrominoesUseFourByFourMatrices() {
+    constexpr char types[] = {'I', 'O', 'T', 'S', 'Z', 'J', 'L'};
+    static_assert(Piece::Size == 4);
+    static_assert(Board::Width - 2 == 15);
+
+    for (char type : types) {
+        const Piece piece(type);
+        int occupiedCells = 0;
+        for (int row = 0; row < Piece::Size; ++row) {
+            for (int column = 0; column < Piece::Size; ++column) {
+                if (piece.cell(row, column) != ' ') {
+                    ++occupiedCells;
+                }
+            }
+        }
+        assert(piece.type() == type);
+        assert(occupiedCells == 4);
+    }
+}
+
 void testPieceRotatesBackToOriginal() {
     const Piece original('T');
     Piece rotated = original;
@@ -42,6 +62,7 @@ void testDropDistanceStopsAtBottom() {
 }  // namespace
 
 int main() {
+    testTetrominoesUseFourByFourMatrices();
     testPieceRotatesBackToOriginal();
     testBoardRejectsInvalidAndOccupiedPositions();
     testDropDistanceStopsAtBottom();
