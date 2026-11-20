@@ -1,36 +1,36 @@
 #include "Line.h"
 #include "Board.h"
 
+namespace {
+
+// SV5: tốc độ rơi (ms giữa 2 lần rơi).
+constexpr int StartFallDelayMs = 500;
+constexpr int FallDelayStepMs = 50;
+constexpr int MinFallDelayMs = 100;
+
+int fallDelayMs = StartFallDelayMs;
+
+// SV5: gọi mỗi khi xóa 1 hàng -> rơi nhanh hơn, không nhanh quá mức tối thiểu.
+void speedUp() {
+    if (fallDelayMs > MinFallDelayMs) {
+        fallDelayMs -= FallDelayStepMs;
+    }
+}
+
+}  // namespace
+
+int getFallDelay() {
+    return fallDelayMs;
+}
+
 int removeLine(Board& board) {
-    int clearedLines = 0;
+    // Board đã có sẵn hàm xóa hàng đầy (public), cells_ thì private
+    // -> dùng lại hàm đó, không cần sửa Board.h.
+    const int clearedLines = board.clearCompletedLines();
 
-    // Chỉ xử lý khu vực chơi, không đụng vào tường.
-    for (int row = Board::Height - 2; row >= 1; --row) {
-        bool full = true;
-
-        for (int col = 1; col < Board::Width - 1; ++col) {
-            if (board.cells_[row][col] == ' ') {
-                full = false;
-                break;
-            }
-        }
-
-        if (!full) continue;
-
-        // Kéo các hàng phía trên xuống.
-        for (int k = row; k > 1; --k) {
-            board.cells_[k] = board.cells_[k - 1];
-        }
-
-        // Làm trống hàng trên cùng.
-        for (int col = 1; col < Board::Width - 1; ++col) {
-            board.cells_[1][col] = ' ';
-        }
-
-        ++clearedLines;
-
-        // Kiểm tra lại vị trí vì hàng phía trên vừa được kéo xuống.
-        ++row;
+    // SV5: mỗi hàng bị xóa -> rơi nhanh hơn.
+    for (int i = 0; i < clearedLines; ++i) {
+        speedUp();
     }
 
     return clearedLines;
