@@ -15,7 +15,7 @@
 //   - Khong can sua Input.h chi de doc phim trong cac man hinh nay.
 // ============================================================================
 
-#include "GameOverUI.h"
+#include "GameOver.h"
 
 #include <algorithm>
 #include <array>
