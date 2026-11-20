@@ -7,6 +7,7 @@
 #include "Game.h"
 
 #include "Input.h"
+#include "Line.h"
 #include "Renderer.h"
 
 #include <algorithm>
@@ -65,7 +66,7 @@ void Game::lockActivePiece() {
     board_.lock(activePiece_, pieceX_, pieceY_);
 
     // TV4: Board tra ve so dong da xoa de Score cap nhat diem/level/combo.
-    const int clearedLines = board_.clearCompletedLines();
+    const int clearedLines = removeLine(board_);
     score_.addLines(clearedLines);
 
     spawnPiece();
@@ -158,7 +159,7 @@ void Game::run() {
         // TV4: toc do roi tang dan theo level (500 ms -> toi thieu 80 ms).
         const auto now = Clock::now();
         const auto fallInterval =
-            std::chrono::milliseconds(score_.fallIntervalMs());
+                std::chrono::milliseconds(getFallDelay());
 
         if (now - lastFall >= fallInterval) {
             if (canMove(0, 1)) {
